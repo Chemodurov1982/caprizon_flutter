@@ -4,29 +4,31 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build_ios:
     runs-on: macos-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Install Flutter
-      uses: subosito/flutter-action@v2
-      with:
-        flutter-version: '3.19.0' # укажи свою версию Flutter!
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.5' # ✅ Минимум 3.19.5, чтобы Dart был 3.7+
 
-    - name: Install dependencies
-      run: flutter pub get
+      - name: Install dependencies
+        run: flutter pub get
 
-    - name: Build iOS
-      run: flutter build ios --release
+      - name: Build iOS
+        run: flutter build ios --release
 
-    # (опционально) Если нужен архив .ipa для TestFlight:
-    # - name: Archive app
-    #   run: |
-    #     cd ios
-    #     xcodebuild -workspace Runner.xcworkspace -scheme Runner -configuration Release -sdk iphoneos archive -archivePath $HOME/Runner.xcarchive
-    #     xcodebuild -exportArchive -archivePath $HOME/Runner.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath $HOME/build
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-release-build
+          path: build/ios/iphoneos
