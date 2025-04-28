@@ -38,18 +38,18 @@ jobs:
 
       - name: Upload IPA to TestFlight
         env:
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-          APP_STORE_CONNECT_API_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_CONTENT }}
+          APPSTORE_CONNECT_KEY_ID: ${{ secrets.APPSTORE_CONNECT_KEY_ID }}
+          APPSTORE_CONNECT_ISSUER_ID: ${{ secrets.APPSTORE_CONNECT_ISSUER_ID }}
+          APPSTORE_CONNECT_PRIVATE_KEY: ${{ secrets.APPSTORE_CONNECT_PRIVATE_KEY }}
         run: |
           mkdir -p fastlane
 
           # Сохраняем API Key в формате JSON
           cat <<EOF > fastlane/api_key.json
           {
-            "key_id": "${APP_STORE_CONNECT_API_KEY_ID}",
-            "issuer_id": "${APP_STORE_CONNECT_ISSUER_ID}",
-            "key": "${APP_STORE_CONNECT_API_KEY_CONTENT}",
+            "key_id": "${APPSTORE_CONNECT_KEY_ID}",
+            "issuer_id": "${APPSTORE_CONNECT_ISSUER_ID}",
+            "key": "${APPSTORE_CONNECT_PRIVATE_KEY}",
             "in_house": false
           }
           EOF
