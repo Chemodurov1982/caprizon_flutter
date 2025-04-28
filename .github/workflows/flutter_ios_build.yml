@@ -19,13 +19,13 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.19.5' # ✅ Минимум 3.19.5, чтобы Dart был 3.7+
+          flutter-version: '3.19.5' # ✅ Flutter >= 3.19.5
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build iOS
-        run: flutter build ios --release
+      - name: Build iOS without codesign
+        run: flutter build ios --release --no-codesign
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
