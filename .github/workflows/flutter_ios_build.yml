@@ -1,0 +1,32 @@
+name: Build iOS App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build_ios:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.0' # укажи свою версию Flutter!
+
+    - name: Install dependencies
+      run: flutter pub get
+
+    - name: Build iOS
+      run: flutter build ios --release
+
+    # (опционально) Если нужен архив .ipa для TestFlight:
+    # - name: Archive app
+    #   run: |
+    #     cd ios
+    #     xcodebuild -workspace Runner.xcworkspace -scheme Runner -configuration Release -sdk iphoneos archive -archivePath $HOME/Runner.xcarchive
+    #     xcodebuild -exportArchive -archivePath $HOME/Runner.xcarchive -exportOptionsPlist ExportOptions.plist -exportPath $HOME/build
