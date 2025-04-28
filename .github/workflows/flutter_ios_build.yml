@@ -19,16 +19,22 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.3' # ✅ Flutter >= 3.19.5
+          flutter-version: '3.29.3' # или твоя версия Flutter
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build iOS without codesign
+      - name: Build iOS
         run: flutter build ios --release --no-codesign
 
-      - name: Upload Artifact
+      - name: Create IPA
+        run: |
+          cd build/ios/iphoneos
+          zip -r Runner.zip Runner.app
+          mv Runner.zip Runner.ipa
+
+      - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4.3.1
         with:
           name: ios-release-build
-          path: build/ios/iphoneos
+          path: build/ios/iphoneos/Runner.ipa
