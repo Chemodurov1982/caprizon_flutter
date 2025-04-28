@@ -1,10 +1,10 @@
-name: Upload IPA to App Store
+name: Build and Upload iOS App
 
 on:
-  workflow_dispatch: # вручную через кнопку "Run workflow" в GitHub
+  workflow_dispatch:  # ручной запуск через кнопку
 
 jobs:
-  upload:
+  build_and_upload:
     runs-on: macos-latest
 
     steps:
@@ -16,14 +16,25 @@ jobs:
         with:
           ruby-version: '3.2'
 
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.29.3'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS App
+        run: flutter build ios --release --no-codesign
+
+      - name: Create IPA
+        run: |
+          cd build/ios/iphoneos
+          zip -r Runner.zip Runner.app
+          mv Runner.zip Runner.ipa
+
       - name: Install Fastlane
         run: gem install fastlane
-
-      - name: Download Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ios-release-build
-          path: build/ios/iphoneos
 
       - name: Upload to App Store
         env:
