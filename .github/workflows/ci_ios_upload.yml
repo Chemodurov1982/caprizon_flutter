@@ -1,7 +1,7 @@
 name: Build and Upload iOS App
 
 on:
-  workflow_dispatch:  # ручной запуск по кнопке "Run workflow"
+  workflow_dispatch:
 
 jobs:
   build_and_upload:
@@ -19,7 +19,7 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.3' # поменяй на свою версию если надо
+          flutter-version: '3.29.3'
 
       - name: Install dependencies
         run: flutter pub get
@@ -44,17 +44,20 @@ jobs:
         run: |
           mkdir -p fastlane
 
-          # Сохраняем API Key в формате JSON
+          # Сохраняем ключ в файл как есть
+          echo "$APPSTORE_CONNECT_PRIVATE_KEY" > fastlane/AuthKey.p8
+
+          # Создаем JSON-файл api_key
           cat <<EOF > fastlane/api_key.json
           {
             "key_id": "${APPSTORE_CONNECT_KEY_ID}",
             "issuer_id": "${APPSTORE_CONNECT_ISSUER_ID}",
-            "key": "${APPSTORE_CONNECT_PRIVATE_KEY}",
+            "key": "$(cat fastlane/AuthKey.p8)",
             "in_house": false
           }
           EOF
 
-          # Загружаем через Fastlane Deliver
+          # Загружаем билд в TestFlight
           fastlane deliver \
             --ipa build/ios/iphoneos/Runner.ipa \
             --api_key_path fastlane/api_key.json \
