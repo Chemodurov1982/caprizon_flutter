@@ -19,12 +19,12 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.3' # укажи свою Flutter-версию, если другая
+          flutter-version: '3.29.3'
 
-      - name: Install Flutter dependencies
+      - name: Install dependencies
         run: flutter pub get
 
-      - name: Install CocoaPods dependencies
+      - name: Install CocoaPods
         run: |
           cd ios
           pod install
@@ -33,55 +33,11 @@ jobs:
       - name: Install Fastlane
         run: gem install fastlane
 
-      - name: Build IPA with Fastlane gym
-        run: |
-          mkdir -p fastlane
-          cat <<EOF > fastlane/Fastfile
-          default_platform(:ios)
-
-          platform :ios do
-            desc "Build .ipa for release"
-            lane :build do
-              gym(
-                workspace: "ios/Runner.xcworkspace",
-                scheme: "Runner",
-                configuration: "Release",
-                export_method: "development", # <-- исправлено здесь!
-                export_options: {
-                  signingStyle: "automatic",
-                  compileBitcode: true,
-                  manageAppVersionAndBuildNumber: false
-                },
-                skip_codesigning: true
-              )
-            end
-          end
-          EOF
-
-          fastlane build
-
-      - name: Upload IPA to TestFlight
+      - name: Build and Upload with Fastlane
         env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
           APPSTORE_CONNECT_KEY_ID: ${{ secrets.APPSTORE_CONNECT_KEY_ID }}
           APPSTORE_CONNECT_ISSUER_ID: ${{ secrets.APPSTORE_CONNECT_ISSUER_ID }}
           APPSTORE_CONNECT_PRIVATE_KEY: ${{ secrets.APPSTORE_CONNECT_PRIVATE_KEY }}
-        run: |
-          mkdir -p fastlane
-          echo "$APPSTORE_CONNECT_PRIVATE_KEY" > fastlane/AuthKey.p8
-          KEY_ESCAPED=$(awk '{printf "%s\\n", $0}' fastlane/AuthKey.p8)
-
-          cat <<EOF > fastlane/api_key.json
-          {
-            "key_id": "${APPSTORE_CONNECT_KEY_ID}",
-            "issuer_id": "${APPSTORE_CONNECT_ISSUER_ID}",
-            "key": "${KEY_ESCAPED}",
-            "in_house": false
-          }
-          EOF
-
-          fastlane deliver \
-            --ipa ./Runner.ipa \
-            --api_key_path fastlane/api_key.json \
-            --skip_metadata true \
-            --skip_screenshots true \
-            --force
+        run: fastlane ios release
