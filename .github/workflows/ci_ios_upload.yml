@@ -19,12 +19,12 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.3' # ← замени на свою, если другая
+          flutter-version: '3.29.3' # <-- твоя версия Flutter, поменяй если надо
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build iOS (no signing)
+      - name: Build iOS App (no codesign)
         run: flutter build ios --release --no-codesign
 
       - name: Archive with xcodebuild (no signing)
@@ -35,28 +35,30 @@ jobs:
                      -archivePath build/ios/archive/Runner.xcarchive \
                      CODE_SIGN_STYLE=Manual \
                      DEVELOPMENT_TEAM="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO \
                      archive
 
-      - name: Export IPA with xcodebuild
+      - name: Export IPA from archive
         run: |
           cat <<EOF > ExportOptions.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
-            <dict>
-              <key>method</key>
-              <string>app-store</string>
-              <key>signingStyle</key>
-              <string>manual</string>
-              <key>stripSwiftSymbols</key>
-              <true/>
-              <key>compileBitcode</key>
-              <true/>
-              <key>manageAppVersionAndBuildNumber</key>
-              <false/>
-              <key>destination</key>
-              <string>export</string>
-            </dict>
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>stripSwiftSymbols</key>
+            <true/>
+            <key>compileBitcode</key>
+            <true/>
+            <key>manageAppVersionAndBuildNumber</key>
+            <false/>
+            <key>destination</key>
+            <string>export</string>
+          </dict>
           </plist>
           EOF
 
