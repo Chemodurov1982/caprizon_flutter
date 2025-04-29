@@ -19,7 +19,7 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.3' # <-- укажи свою версию Flutter, если нужна другая
+          flutter-version: '3.29.3' # укажи свою Flutter-версию, если другая
 
       - name: Install Flutter dependencies
         run: flutter pub get
@@ -46,7 +46,7 @@ jobs:
                 workspace: "ios/Runner.xcworkspace",
                 scheme: "Runner",
                 configuration: "Release",
-                export_method: "app-store",
+                export_method: "development", # <-- исправлено здесь!
                 export_options: {
                   signingStyle: "automatic",
                   compileBitcode: true,
