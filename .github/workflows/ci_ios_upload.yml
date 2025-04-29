@@ -19,38 +19,61 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.3' # или твоя версия
+          flutter-version: '3.29.3'
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build iOS App (no codesign)
-        run: flutter build ios --release --no-codesign
-
-      - name: Create .ipa manually
+      - name: Build iOS Archive (no codesign)
         run: |
-          cd build/ios/iphoneos
-          zip -r Runner.zip Runner.app
-          mv Runner.zip Runner.ipa
+          flutter build ios --release --no-codesign
+          xcodebuild -workspace ios/Runner.xcworkspace \
+                     -scheme Runner \
+                     -configuration Release \
+                     -archivePath build/ios/archive/Runner.xcarchive \
+                     archive
+
+      - name: Export IPA from archive
+        run: |
+          cat <<EOF > ExportOptions.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>app-store</string>
+            <key>signingStyle</key>
+            <string>automatic</string>
+            <key>stripSwiftSymbols</key>
+            <true/>
+            <key>compileBitcode</key>
+            <true/>
+            <key>destination</key>
+            <string>export</string>
+            <key>manageAppVersionAndBuildNumber</key>
+            <false/>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild -exportArchive \
+            -archivePath build/ios/archive/Runner.xcarchive \
+            -exportOptionsPlist ExportOptions.plist \
+            -exportPath build/ios/ipa
 
       - name: Install Fastlane
         run: gem install fastlane
 
-      - name: Upload IPA to TestFlight
+      - name: Upload to TestFlight
         env:
           APPSTORE_CONNECT_KEY_ID: ${{ secrets.APPSTORE_CONNECT_KEY_ID }}
           APPSTORE_CONNECT_ISSUER_ID: ${{ secrets.APPSTORE_CONNECT_ISSUER_ID }}
           APPSTORE_CONNECT_PRIVATE_KEY: ${{ secrets.APPSTORE_CONNECT_PRIVATE_KEY }}
         run: |
           mkdir -p fastlane
-
-          # Сохраняем PEM-ключ в файл
           echo "$APPSTORE_CONNECT_PRIVATE_KEY" > fastlane/AuthKey.p8
-
-          # Генерируем экранированный ключ для JSON
           KEY_ESCAPED=$(awk '{printf "%s\\n", $0}' fastlane/AuthKey.p8)
 
-          # Создаем API-ключ в JSON
           cat <<EOF > fastlane/api_key.json
           {
             "key_id": "${APPSTORE_CONNECT_KEY_ID}",
@@ -60,11 +83,9 @@ jobs:
           }
           EOF
 
-          # Загружаем билд в TestFlight
           fastlane deliver \
-            --ipa build/ios/iphoneos/Runner.ipa \
+            --ipa build/ios/ipa/Runner.ipa \
             --api_key_path fastlane/api_key.json \
-            --app_identifier com.example.caprizon \
             --skip_metadata true \
             --skip_screenshots true \
             --force
