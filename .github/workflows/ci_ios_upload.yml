@@ -43,13 +43,26 @@ jobs:
           APPSTORE_CONNECT_PRIVATE_KEY: ${{ secrets.APPSTORE_CONNECT_PRIVATE_KEY }}
         run: |
           mkdir -p fastlane
+
+          # Сохраняем PEM в файл
           echo "$APPSTORE_CONNECT_PRIVATE_KEY" > fastlane/AuthKey.p8
 
+          # Генерируем JSON с экранированным ключом
+          KEY_ESCAPED=$(awk '{printf "%s\\n", $0}' fastlane/AuthKey.p8)
+
+          cat <<EOF > fastlane/api_key.json
+          {
+            "key_id": "${APPSTORE_CONNECT_KEY_ID}",
+            "issuer_id": "${APPSTORE_CONNECT_ISSUER_ID}",
+            "key": "${KEY_ESCAPED}",
+            "in_house": false
+          }
+          EOF
+
+          # Загрузка через API
           fastlane deliver \
             --ipa build/ios/iphoneos/Runner.ipa \
-            --api_key_path fastlane/AuthKey.p8 \
-            --api_key_id $APPSTORE_CONNECT_KEY_ID \
-            --issuer_id $APPSTORE_CONNECT_ISSUER_ID \
+            --api_key_path fastlane/api_key.json \
             --skip_metadata true \
             --skip_screenshots true \
             --force
