@@ -19,40 +19,44 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.3'
+          flutter-version: '3.29.3' # ← замени на свою, если другая
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build iOS Archive (no codesign)
+      - name: Build iOS (no signing)
+        run: flutter build ios --release --no-codesign
+
+      - name: Archive with xcodebuild (no signing)
         run: |
-          flutter build ios --release --no-codesign
           xcodebuild -workspace ios/Runner.xcworkspace \
                      -scheme Runner \
                      -configuration Release \
                      -archivePath build/ios/archive/Runner.xcarchive \
+                     CODE_SIGN_STYLE=Manual \
+                     DEVELOPMENT_TEAM="" \
                      archive
 
-      - name: Export IPA from archive
+      - name: Export IPA with xcodebuild
         run: |
           cat <<EOF > ExportOptions.plist
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store</string>
-            <key>signingStyle</key>
-            <string>automatic</string>
-            <key>stripSwiftSymbols</key>
-            <true/>
-            <key>compileBitcode</key>
-            <true/>
-            <key>destination</key>
-            <string>export</string>
-            <key>manageAppVersionAndBuildNumber</key>
-            <false/>
-          </dict>
+            <dict>
+              <key>method</key>
+              <string>app-store</string>
+              <key>signingStyle</key>
+              <string>manual</string>
+              <key>stripSwiftSymbols</key>
+              <true/>
+              <key>compileBitcode</key>
+              <true/>
+              <key>manageAppVersionAndBuildNumber</key>
+              <false/>
+              <key>destination</key>
+              <string>export</string>
+            </dict>
           </plist>
           EOF
 
