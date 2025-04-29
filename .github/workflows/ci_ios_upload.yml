@@ -19,15 +19,15 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.3'
+          flutter-version: '3.29.3' # или твоя версия
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build iOS App
+      - name: Build iOS App (no codesign)
         run: flutter build ios --release --no-codesign
 
-      - name: Create IPA
+      - name: Create .ipa manually
         run: |
           cd build/ios/iphoneos
           zip -r Runner.zip Runner.app
@@ -36,7 +36,7 @@ jobs:
       - name: Install Fastlane
         run: gem install fastlane
 
-      - name: Upload to TestFlight
+      - name: Upload IPA to TestFlight
         env:
           APPSTORE_CONNECT_KEY_ID: ${{ secrets.APPSTORE_CONNECT_KEY_ID }}
           APPSTORE_CONNECT_ISSUER_ID: ${{ secrets.APPSTORE_CONNECT_ISSUER_ID }}
@@ -44,12 +44,13 @@ jobs:
         run: |
           mkdir -p fastlane
 
-          # Сохраняем PEM в файл
+          # Сохраняем PEM-ключ в файл
           echo "$APPSTORE_CONNECT_PRIVATE_KEY" > fastlane/AuthKey.p8
 
-          # Генерируем JSON с экранированным ключом
+          # Генерируем экранированный ключ для JSON
           KEY_ESCAPED=$(awk '{printf "%s\\n", $0}' fastlane/AuthKey.p8)
 
+          # Создаем API-ключ в JSON
           cat <<EOF > fastlane/api_key.json
           {
             "key_id": "${APPSTORE_CONNECT_KEY_ID}",
@@ -59,10 +60,11 @@ jobs:
           }
           EOF
 
-          # Загрузка через API
+          # Загружаем билд в TestFlight
           fastlane deliver \
             --ipa build/ios/iphoneos/Runner.ipa \
             --api_key_path fastlane/api_key.json \
+            --app_identifier com.example.caprizon \
             --skip_metadata true \
             --skip_screenshots true \
             --force
