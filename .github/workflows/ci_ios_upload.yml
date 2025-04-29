@@ -19,58 +19,42 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.3' # <-- твоя версия Flutter, поменяй если надо
+          flutter-version: '3.29.3'
 
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Build iOS App (no codesign)
-        run: flutter build ios --release --no-codesign
-
-      - name: Archive with xcodebuild (no signing)
-        run: |
-          xcodebuild -workspace ios/Runner.xcworkspace \
-                     -scheme Runner \
-                     -configuration Release \
-                     -archivePath build/ios/archive/Runner.xcarchive \
-                     CODE_SIGN_STYLE=Manual \
-                     DEVELOPMENT_TEAM="" \
-                     CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGNING_ALLOWED=NO \
-                     archive
-
-      - name: Export IPA from archive
-        run: |
-          cat <<EOF > ExportOptions.plist
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-            <key>method</key>
-            <string>app-store</string>
-            <key>signingStyle</key>
-            <string>manual</string>
-            <key>stripSwiftSymbols</key>
-            <true/>
-            <key>compileBitcode</key>
-            <true/>
-            <key>manageAppVersionAndBuildNumber</key>
-            <false/>
-            <key>destination</key>
-            <string>export</string>
-          </dict>
-          </plist>
-          EOF
-
-          xcodebuild -exportArchive \
-            -archivePath build/ios/archive/Runner.xcarchive \
-            -exportOptionsPlist ExportOptions.plist \
-            -exportPath build/ios/ipa
-
       - name: Install Fastlane
         run: gem install fastlane
 
-      - name: Upload to TestFlight
+      - name: Build IPA with Fastlane gym
+        run: |
+          mkdir -p fastlane
+          cat <<EOF > fastlane/Fastfile
+          default_platform(:ios)
+
+          platform :ios do
+            desc "Build .ipa for release"
+            lane :build do
+              gym(
+                workspace: "ios/Runner.xcworkspace",
+                scheme: "Runner",
+                configuration: "Release",
+                export_method: "app-store",
+                export_options: {
+                  signingStyle: "automatic",
+                  compileBitcode: true,
+                  manageAppVersionAndBuildNumber: false
+                },
+                skip_codesigning: true
+              )
+            end
+          end
+          EOF
+
+          fastlane build
+
+      - name: Upload IPA to TestFlight
         env:
           APPSTORE_CONNECT_KEY_ID: ${{ secrets.APPSTORE_CONNECT_KEY_ID }}
           APPSTORE_CONNECT_ISSUER_ID: ${{ secrets.APPSTORE_CONNECT_ISSUER_ID }}
@@ -90,7 +74,7 @@ jobs:
           EOF
 
           fastlane deliver \
-            --ipa build/ios/ipa/Runner.ipa \
+            --ipa ./Runner.ipa \
             --api_key_path fastlane/api_key.json \
             --skip_metadata true \
             --skip_screenshots true \
