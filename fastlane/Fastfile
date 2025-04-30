@@ -1,18 +1,22 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Build and upload to TestFlight using API Key"
+  desc "Push a new release build to the App Store"
   lane :release do
+    app_store_connect_api_key(
+      key_id: ENV["APPSTORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APPSTORE_CONNECT_ISSUER_ID"],
+      key_content: ENV["APPSTORE_CONNECT_PRIVATE_KEY"],
+      is_key_content_base64: true,
+      duration: 1200,
+      in_house: false
+    )
+
     match(
       type: "appstore",
-      readonly: false,
       git_url: ENV["MATCH_GIT_URL"],
-      app_identifier: "com.example.caprizon", # Твой Bundle ID
-      api_key: app_store_connect_api_key(
-        key_id: ENV["APPSTORE_CONNECT_KEY_ID"],
-        issuer_id: ENV["APPSTORE_CONNECT_ISSUER_ID"],
-        key_content: ENV["APPSTORE_CONNECT_PRIVATE_KEY"]
-      )
+      readonly: false,
+      keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"]
     )
 
     gym(
@@ -23,21 +27,9 @@ platform :ios do
         provisioningProfiles: {
           "com.example.caprizon" => "match AppStore com.example.caprizon"
         },
-        signingStyle: "manual",
-        teamID: ENV["APP_STORE_CONNECT_TEAM_ID"]
-      }
-    )
-
-    deliver(
-      ipa: "./Runner.ipa", # Путь куда gym положит .ipa (по умолчанию будет Runner.ipa)
-      skip_metadata: true,
-      skip_screenshots: true,
-      force: true,
-      api_key: app_store_connect_api_key(
-        key_id: ENV["APPSTORE_CONNECT_KEY_ID"],
-        issuer_id: ENV["APPSTORE_CONNECT_ISSUER_ID"],
-        key_content: ENV["APPSTORE_CONNECT_PRIVATE_KEY"]
-      )
+        signingStyle: "manual"
+      },
+      xcargs: "-allowProvisioningUpdates"
     )
   end
 end
