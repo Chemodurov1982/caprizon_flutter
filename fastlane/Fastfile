@@ -14,9 +14,10 @@ platform :ios do
 
     match(
       type: "appstore",
-      app_identifier: "com.example.caprizon",
+      app_identifier: "com.example.caprizon", # <--- Убедись, что этот идентификатор совпадает с Xcode
       git_url: ENV["MATCH_GIT_URL"],
       readonly: false,
+      keychain_name: "login.keychain",
       keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"]
     )
 
@@ -30,7 +31,9 @@ platform :ios do
         },
         signingStyle: "manual"
       },
-      xcargs: "-allowProvisioningUpdates"
+      output_name: "Runner"
     )
+
+    upload_to_testflight
   end
 end
