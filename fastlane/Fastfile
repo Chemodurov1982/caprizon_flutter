@@ -15,6 +15,7 @@ platform :ios do
     match(
       type: "appstore",
       readonly: false,
+      app_identifier: "com.example.caprizon",
       git_branch: "master",
       keychain_name: "login.keychain",
       keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"]
