@@ -13,10 +13,9 @@ platform :ios do
     )
 
     match(
-      type: "development",
-      app_identifier: "com.example.caprizon", # <--- Убедись, что этот идентификатор совпадает с Xcode
-      git_url: ENV["MATCH_GIT_URL"],
+      type: "appstore",
       readonly: false,
+      git_branch: "master",
       keychain_name: "login.keychain",
       keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"]
     )
@@ -25,6 +24,7 @@ platform :ios do
       workspace: "ios/Runner.xcworkspace",
       scheme: "Runner",
       export_method: "app-store",
+      allowProvisioningUpdates: true,
       export_options: {
         provisioningProfiles: {
           "com.example.caprizon" => "match AppStore com.example.caprizon"
@@ -33,7 +33,5 @@ platform :ios do
       },
       output_name: "Runner"
     )
-
-    upload_to_testflight
   end
 end
