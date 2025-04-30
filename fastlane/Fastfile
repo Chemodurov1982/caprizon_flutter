@@ -25,7 +25,6 @@ platform :ios do
       workspace: "ios/Runner.xcworkspace",
       scheme: "Runner",
       export_method: "app-store",
-      allowProvisioningUpdates: true,
       export_options: {
         provisioningProfiles: {
           "com.example.caprizon" => "match AppStore com.example.caprizon"
