@@ -27,8 +27,13 @@ platform :ios do
       readonly: false,
       app_identifier: "com.example.caprizon",
       git_branch: "main",
-      keychain_name: "login.keychain",
+      keychain_name: "build.keychain",
       keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"]
+    )
+
+    update_project_team(
+      path: "ios/Runner.xcodeproj",
+      teamid: "K7K5PZNM7P"
     )
 
     gym(
