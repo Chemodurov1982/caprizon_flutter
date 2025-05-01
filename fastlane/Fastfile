@@ -18,7 +18,8 @@ platform :ios do
       default_keychain: true,
       unlock: true,
       timeout: 3600,
-      add_to_search_list: true
+      add_to_search_list: true,
+      require_create: true
     )
 
     match(
