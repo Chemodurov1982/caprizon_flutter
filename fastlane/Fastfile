@@ -12,6 +12,15 @@ platform :ios do
       in_house: false
     )
 
+    create_keychain(
+      name: "login.keychain",
+      password: ENV["MATCH_KEYCHAIN_PASSWORD"],
+      default_keychain: true,
+      unlock: true,
+      timeout: 3600,
+      add_to_search_list: true
+    )
+
     match(
       type: "appstore",
       readonly: false,
