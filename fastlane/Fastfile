@@ -36,6 +36,12 @@ platform :ios do
       teamid: "K7K5PZNM7P"
     )
 
+    automatic_code_signing(
+      use_automatic_signing: true,
+      path: "ios/Runner.xcodeproj",
+      team_id: "K7K5PZNM7P"
+    )
+
     gym(
       workspace: "ios/Runner.xcworkspace",
       scheme: "Runner",
