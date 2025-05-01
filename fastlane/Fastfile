@@ -13,7 +13,7 @@ platform :ios do
     )
 
     create_keychain(
-      name: "login.keychain",
+      name: "build.keychain",
       password: ENV["MATCH_KEYCHAIN_PASSWORD"],
       default_keychain: true,
       unlock: true,
