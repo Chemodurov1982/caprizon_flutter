@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:collection/collection.dart';
-
+import 'token_rules_page.dart';
 import 'create_token.dart';
 import 'mint_page.dart';
 import 'token_selector.dart';
@@ -264,7 +264,7 @@ class _HomePageState extends State<HomePage> {
               if (isAdmin) ...[
                 ElevatedButton(
                   onPressed: openMintPage,
-                  child: const Text('Mint Tokens'),
+                  child: const Text('Create Tokens'),
                 ),
                 const SizedBox(height: 8),
                 ElevatedButton(
@@ -273,7 +273,25 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 8),
               ],
-
+              if (selectedTokenId != null)
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    CupertinoPageRoute(
+                      builder: (_) => TokenRulesPage(
+                        token: widget.token,
+                        tokenId: selectedTokenId!,
+                        userId: widget.userId,
+                        isAdmin: isAdmin,
+                      ),
+                    ),
+                  );
+                },
+                child: const Text('Token Rules'),
+              ),
+              const SizedBox(height: 8),
+              if (selectedTokenId != null)
               ElevatedButton(
                 onPressed: () => openTransferPage(isAdmin),
                 child: const Text('Transactions'),

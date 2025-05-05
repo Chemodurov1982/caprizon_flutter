@@ -41,10 +41,10 @@ class _TokenMintPageState extends State<TokenMintPage> {
 
     setState(() {
       if (response.statusCode == 200) {
-        message = 'Minted successfully';
+        message = 'Created successfully';
       } else {
         final responseData = jsonDecode(response.body);
-        message = 'Mint failed: ${responseData['error'] ?? 'Unknown error'}';
+        message = 'Creation failed: ${responseData['error'] ?? 'Unknown error'}';
       }
     });
   }
@@ -53,14 +53,14 @@ class _TokenMintPageState extends State<TokenMintPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Mint Tokens')),
+      appBar: AppBar(title: const Text('Create Tokens')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(controller: amountController, decoration: const InputDecoration(labelText: 'Amount'), keyboardType: TextInputType.number),
             const SizedBox(height: 16),
-            ElevatedButton(onPressed: mint, child: const Text('Mint')),
+            ElevatedButton(onPressed: mint, child: const Text('Create')),
             const SizedBox(height: 8),
             if (message.isNotEmpty) Text(message),
           ],

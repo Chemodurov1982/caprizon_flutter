@@ -27,15 +27,15 @@ class _RegisterPageState extends State<RegisterPage> {
 
     // Локальная проверка формата e-mail
     if (!email.contains('@') || !email.contains('.')) {
-      setState(() => error = 'Введите корректный e-mail');
+      setState(() => error = 'Incorrect e-mail');
       return;
     }
     if (name.isEmpty) {
-      setState(() => error = 'Введите имя');
+      setState(() => error = 'Input name');
       return;
     }
     if (password.length < 6) {
-      setState(() => error = 'Пароль должен быть не менее 6 символов');
+      setState(() => error = 'Password must contain not less than 6 symbols');
       return;
     }
 
@@ -47,11 +47,11 @@ class _RegisterPageState extends State<RegisterPage> {
     );
     if (checkResponse.statusCode == 200) {
       // Сервер ответил 200 — такой e-mail уже есть в базе
-      setState(() => error = 'Этот e-mail уже зарегистрирован');
+      setState(() => error = 'This e-mail is already registered');
       return;
     } else if (checkResponse.statusCode != 404) {
       // Любая другая ошибка (например, 500)
-      setState(() => error = 'Не удалось проверить e-mail: попробуйте позже');
+      setState(() => error = 'E-mail check failed: try again later');
       return;
     }
     // Если статус 404 — значит такого e-mail нет и можно регистрировать
@@ -79,7 +79,7 @@ class _RegisterPageState extends State<RegisterPage> {
       );
     } else {
       final message = (jsonDecode(response.body)['error'] as String?) ??
-          'Ошибка регистрации';
+          'Registration failed';
       setState(() => error = message);
     }
   }
@@ -87,14 +87,14 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Регистрация')),
+      appBar: AppBar(title: const Text('Registration')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(labelText: 'Имя'),
+              decoration: const InputDecoration(labelText: 'Name'),
             ),
             const SizedBox(height: 8),
             TextField(
@@ -105,13 +105,13 @@ class _RegisterPageState extends State<RegisterPage> {
             const SizedBox(height: 8),
             TextField(
               controller: passwordController,
-              decoration: const InputDecoration(labelText: 'Пароль'),
+              decoration: const InputDecoration(labelText: 'Password'),
               obscureText: true,
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: register,
-              child: const Text('Зарегистрироваться'),
+              child: const Text('Register'),
             ),
             if (error.isNotEmpty) ...[
               const SizedBox(height: 12),
