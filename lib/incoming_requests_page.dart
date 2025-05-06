@@ -97,7 +97,7 @@ class _IncomingRequestsPageState extends State<IncomingRequestsPage> {
                 horizontal: 16, vertical: 8
             ),
             child: ListTile(
-              title: Text('From: ${req['requesterId']}'),
+              title: Text('From: ${req['requesterName'] ?? req['requesterId']}'),
               subtitle: Text(
                 'Amount: ${req['amount']}\n'
                     'Note: ${req['message'] ?? ''}',

@@ -6,12 +6,14 @@ class TransactionHistoryPage extends StatefulWidget {
   final String token;
   final String userId;
   final String tokenId;
+  final String tokenSymbol;
 
   const TransactionHistoryPage({
     super.key,
     required this.token,
     required this.userId,
     required this.tokenId,
+    required this.tokenSymbol,
   });
 
   @override
@@ -73,7 +75,7 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
                 if (when.isNotEmpty) Text('At: $when'),
               ],
             ),
-            trailing: Text('${tx['amount']}'),
+              trailing: Text('${widget.tokenSymbol} ${tx['amount']}')
           );
         },
       ),

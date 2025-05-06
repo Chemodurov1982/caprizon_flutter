@@ -22,10 +22,11 @@ class TokenSelector extends StatelessWidget {
       items: tokens.map((token) {
         final name = token['name'] ?? 'Unnamed';
         final symbol = token['symbol'] ?? '';
+        final admin = token['adminName'] ?? '';
         final id = token['tokenId'] ?? token['_id'] ?? '';
         return DropdownMenuItem<String>(
           value: id,
-          child: Text('$name ($symbol)'),
+          child: Text('$name ($symbol) — $admin'),
         );
       }).toList(),
     );

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'entry_page.dart';
+import 'login_page.dart';
+import 'home_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MyApp());
@@ -9,9 +12,18 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
+  Future<Widget> _getStartupPage() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+    final userId = prefs.getString('userId');
+    if (token != null && userId != null) {
+      return HomePage(token: token, userId: userId);
+    }
+    return const EntryPage();
+  }
+
   @override
   Widget build(BuildContext context) {
-    // ваши фирменные цвета
     const primaryColor = Color(0xFF394168);
     const secondaryColor = Color(0xFFE91E63);
     const backgroundColor = Color(0xFFF5F5F5);
@@ -33,12 +45,8 @@ class MyApp extends StatelessWidget {
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
         ),
-
-        // глобальный текстовый стиль через GoogleFonts
         textTheme: GoogleFonts.interTextTheme()
             .apply(bodyColor: colorScheme.onBackground),
-
-        // стиль для кнопок
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: secondaryColor,
@@ -48,8 +56,6 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-
-        // теперь задаём активный цвет для переключателей / чекбоксов через темы виджетов:
         switchTheme: SwitchThemeData(
           thumbColor: MaterialStateProperty.resolveWith<Color?>(
                 (states) => states.contains(MaterialState.selected)
@@ -71,10 +77,18 @@ class MyApp extends StatelessWidget {
         radioTheme: RadioThemeData(
           fillColor: MaterialStateProperty.all(secondaryColor),
         ),
-
-        // и т.д. для других элементов...
       ),
-      home: const EntryPage(),
+      home: FutureBuilder<Widget>(
+        future: _getStartupPage(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+          return snapshot.data!;
+        },
+      ),
     );
   }
 }
