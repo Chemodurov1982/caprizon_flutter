@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'home_page.dart';
 import 'package:lottie/lottie.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -31,6 +32,9 @@ class _LoginPageState extends State<LoginPage> {
       final data = jsonDecode(response.body);
       final token = data['token'];
       final userId = data['userId'];
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('token', token);
+      await prefs.setString('userId', userId);
       Navigator.pushReplacement(
         context,
         CupertinoPageRoute(

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:collection/collection.dart';
+import 'entry_page.dart';
 import 'token_rules_page.dart';
 import 'create_token.dart';
 import 'mint_page.dart';
@@ -281,9 +282,10 @@ class _HomePageState extends State<HomePage> {
                         onPressed: () async {
                           final prefs = await SharedPreferences.getInstance();
                           await prefs.clear();
-                          if (context.mounted) {
-                            Navigator.of(context).pushReplacementNamed('/');
-                          }
+                          if (!context.mounted) return;
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(builder: (_) => const EntryPage()),
+                          );
                         },
                         child: const Text('Logout'),
                       ),
