@@ -8,12 +8,15 @@ class TransferPage extends StatefulWidget {
   final String fromUserId;
   final bool isAdmin;
 
+  final dynamic tokenSymbol;
+
   const TransferPage({
     Key? key,
     required this.token,
     required this.tokenId,
     required this.fromUserId,
     required this.isAdmin,
+    required this.tokenSymbol,
   }) : super(key: key);
 
   @override
@@ -54,6 +57,7 @@ class _TransferPageState extends State<TransferPage> {
           .map<Map<String, String>>((u) => {
         'userId': u['_id'].toString(),
         'email': u['email'].toString(),
+        'name': u['name'].toString(),
       })
           .toList();
       setState(() {
@@ -171,7 +175,7 @@ class _TransferPageState extends State<TransferPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Отображаем баланс текущего пользователя
-            Text('Your balance: \$${userBalance.toStringAsFixed(2)}', style: const TextStyle(fontSize: 16)),
+            Text('Your balance: ${widget.tokenSymbol} ${userBalance.toStringAsFixed(2)}'),
             const SizedBox(height: 16),
             if (users.isEmpty)
               const Text(
@@ -189,7 +193,7 @@ class _TransferPageState extends State<TransferPage> {
                   final email = user['email']!;
                   return DropdownMenuItem<String>(
                     value: id,
-                    child: Text(email),
+                    child: Text(user['name'] ?? user['email']!),
                   );
                 }).toList(),
               ),

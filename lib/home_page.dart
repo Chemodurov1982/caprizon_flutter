@@ -188,6 +188,11 @@ class _HomePageState extends State<HomePage> {
 
   void openTransferPage(bool isAdmin) {
     if (selectedTokenId == null) return;
+
+    final selectedToken = tokens.firstWhereOrNull(
+          (t) => t['tokenId'] == selectedTokenId,
+    );
+
     Navigator.push(
       context,
       CupertinoPageRoute(
@@ -196,6 +201,7 @@ class _HomePageState extends State<HomePage> {
           tokenId: selectedTokenId!,
           fromUserId: widget.userId,
           isAdmin: isAdmin,
+          tokenSymbol: selectedToken?['symbol'] ?? '',
         ),
       ),
     ).then((result) {
@@ -205,6 +211,7 @@ class _HomePageState extends State<HomePage> {
       }
     });
   }
+
 
   void openHistoryPage() {
     if (selectedTokenId == null) return;
