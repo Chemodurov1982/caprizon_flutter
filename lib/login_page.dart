@@ -32,9 +32,22 @@ class _LoginPageState extends State<LoginPage> {
       final data = jsonDecode(response.body);
       final token = data['token'];
       final userId = data['userId'];
+
+      final profileResp = await http.get(
+        Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/me'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', token);
       await prefs.setString('userId', userId);
+
+      if (profileResp.statusCode == 200) {
+        final profile = jsonDecode(profileResp.body);
+        final isPremium = profile['isPremium'] ?? false;
+        await prefs.setBool('isPremium', isPremium);
+      }
+
       Navigator.pushReplacement(
         context,
         CupertinoPageRoute(
@@ -45,6 +58,7 @@ class _LoginPageState extends State<LoginPage> {
       setState(() => error = 'Login failed');
     }
   }
+
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class TransferPage extends StatefulWidget {
   final String token;
@@ -90,6 +92,26 @@ class _TransferPageState extends State<TransferPage> {
   Future<void> submitTransfer(String fromUser, String toUser) async {
     final amount = double.tryParse(amountController.text);
     if (amount == null || amount <= 0) return;
+    final prefs = await SharedPreferences.getInstance();
+    final isPremium = prefs.getBool('isPremium') ?? false;
+
+    if (!isPremium) {
+      final profileResp = await http.get(
+        Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/me'),
+        headers: {'Authorization': 'Bearer ${widget.token}'},
+      );
+
+      if (profileResp.statusCode == 200) {
+        final profile = jsonDecode(profileResp.body);
+        final count = profile['transactionCount'] ?? 0;
+        if (count >= 20) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Free users can only make 20 transactions')),
+          );
+          return;
+        }
+      }
+    }
 
     final response = await http.post(
       Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/transfer'),
@@ -156,12 +178,9 @@ class _TransferPageState extends State<TransferPage> {
 
   void onRequestPressed() {
     if (selectedUserId == null) return;
-    if (widget.isAdmin) {
-      submitTransfer(widget.fromUserId, selectedUserId!);
-    } else {
-      submitRequest();
-    }
+    submitRequest(); // отправка запроса, независимо от isAdmin
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +194,9 @@ class _TransferPageState extends State<TransferPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Отображаем баланс текущего пользователя
-            Text('Your balance: ${widget.tokenSymbol} ${userBalance.toStringAsFixed(2)}'),
+            Text('Your balance: ${widget.tokenSymbol} ${userBalance.toStringAsFixed(2)}',
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             if (users.isEmpty)
               const Text(

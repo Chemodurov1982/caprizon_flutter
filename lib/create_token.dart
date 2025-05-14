@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class CreateTokenPage extends StatefulWidget {
   final String token;
@@ -19,6 +21,16 @@ class _CreateTokenPageState extends State<CreateTokenPage> {
     final name = nameController.text.trim();
     final symbol = symbolController.text.trim();
     if (name.isEmpty || symbol.isEmpty) return;
+    final prefs = await SharedPreferences.getInstance();
+    final isPremium = prefs.getBool('isPremium') ?? false;
+
+    if (!isPremium) {
+      // Показываем предупреждение (сервер тоже проверяет этот лимит!)
+      setState(() {
+        message = 'Free users can only create 1 token. Upgrade to Premium.';
+      });
+      return;
+    }
 
     final response = await http.post(
       Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/tokens/create'),
