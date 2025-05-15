@@ -14,7 +14,7 @@ class UpgradePage extends StatefulWidget {
 
 class _UpgradePageState extends State<UpgradePage> {
   final InAppPurchase _iap = InAppPurchase.instance;
-  final Set<String> _productIds = {'premium_monthly', 'premium_yearly'};
+  final Set<String> _productIds = {'premium_monthly_v2', 'premium_yearly_v2'};
   bool _available = false;
   List<ProductDetails> _products = [];
   bool _purchasePending = false;
@@ -107,7 +107,7 @@ class _UpgradePageState extends State<UpgradePage> {
               if (_purchasedProductId != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
-                  child: Text('Plan: ${_purchasedProductId == 'premium_yearly' ? 'Yearly' : 'Monthly'}'),
+                  child: Text('Plan: ${_purchasedProductId == 'premium_yearly_v2' ? 'Yearly' : 'Monthly'}'),
                 ),
             ],
           ),
