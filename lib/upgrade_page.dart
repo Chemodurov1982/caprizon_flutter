@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'dart:convert';
 
 class UpgradePage extends StatefulWidget {
   final String token;
@@ -60,14 +61,8 @@ class _UpgradePageState extends State<UpgradePage> {
           await _iap.completePurchase(purchase);
         }
 
-        final res = await http.post(
-          Uri.parse('https://caprizon.fly.dev/api/users/upgrade'),
-          headers: {
-            'Authorization': 'Bearer ${widget.token}',
-          },
-        );
-
-        if (res.statusCode == 200) {
+        final success = await sendReceiptToBackend(purchase);
+        if (success) {
           setState(() {
             _upgraded = true;
             _purchasePending = false;
@@ -81,6 +76,30 @@ class _UpgradePageState extends State<UpgradePage> {
         setState(() => _purchasePending = false);
         _showSnackBar('Purchase failed');
       }
+    }
+  }
+
+  Future<bool> sendReceiptToBackend(PurchaseDetails purchase) async {
+    final receipt = purchase.verificationData.serverVerificationData;
+    final productId = purchase.productID;
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/upgrade'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'receipt': receipt,
+          'productId': productId,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error sending receipt: $e');
+      return false;
     }
   }
 
@@ -133,7 +152,7 @@ class _UpgradePageState extends State<UpgradePage> {
             if (_purchasePending) CircularProgressIndicator(),
           ],
         )
-            : Text('Subscriptions are not available'),
+            : Text('Subscriptions will be available once approved by the App Store.'),
       ),
     );
   }
