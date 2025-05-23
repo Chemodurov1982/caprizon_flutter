@@ -1,158 +1,84 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'dart:convert';
+import 'dart:async';
 
 class UpgradePage extends StatefulWidget {
   final String token;
-
-  const UpgradePage({required this.token});
+  const UpgradePage({Key? key, required this.token}) : super(key: key);
 
   @override
-  _UpgradePageState createState() => _UpgradePageState();
+  State<UpgradePage> createState() => _UpgradePageState();
 }
 
 class _UpgradePageState extends State<UpgradePage> {
   final InAppPurchase _iap = InAppPurchase.instance;
-  final Set<String> _productIds = {'premium_monthly_v2', 'premium_yearly_v2'};
-  bool _available = false;
+  late StreamSubscription<List<PurchaseDetails>> _subscription;
   List<ProductDetails> _products = [];
-  bool _purchasePending = false;
-  StreamSubscription<List<PurchaseDetails>>? _subscription;
-  bool _upgraded = false;
-  String? _purchasedProductId;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
     _initialize();
-    _subscription = _iap.purchaseStream.listen(_onPurchaseUpdated, onDone: () {
-      _subscription?.cancel();
-    });
   }
 
-  Future<void> _initialize() async {
-    final available = await _iap.isAvailable();
-    setState(() => _available = available);
-    if (!available) return;
-
-    final response = await _iap.queryProductDetails(_productIds);
-    if (response.error != null || response.productDetails.isEmpty) {
-      _showSnackBar('Failed to load subscription options');
+  void _initialize() async {
+    final bool available = await _iap.isAvailable();
+    if (!available) {
+      print('❌ In-app purchases not available.');
+      setState(() => _loading = false);
       return;
     }
 
+    final response = await _iap.queryProductDetails({'premium_monthly', 'premium_yearly'});
+    print('📦 Loaded products: ${response.productDetails}');
+    print('❗ StoreKit error: ${response.error}');
+
     setState(() {
-      _products = response.productDetails;
+      _products = response.productDetails.toList();
+      _loading = false;
     });
-  }
-
-  void _buy(ProductDetails product) {
-    final purchaseParam = PurchaseParam(productDetails: product);
-    _iap.buyNonConsumable(purchaseParam: purchaseParam);
-    setState(() => _purchasePending = true);
-  }
-
-  Future<void> _onPurchaseUpdated(List<PurchaseDetails> purchases) async {
-    for (final purchase in purchases) {
-      if (purchase.status == PurchaseStatus.purchased || purchase.status == PurchaseStatus.restored) {
-        if (purchase.pendingCompletePurchase) {
-          await _iap.completePurchase(purchase);
-        }
-
-        final success = await sendReceiptToBackend(purchase);
-        if (success) {
-          setState(() {
-            _upgraded = true;
-            _purchasePending = false;
-            _purchasedProductId = purchase.productID;
-          });
-        } else {
-          setState(() => _purchasePending = false);
-          _showSnackBar('Failed to upgrade profile');
-        }
-      } else if (purchase.status == PurchaseStatus.error) {
-        setState(() => _purchasePending = false);
-        _showSnackBar('Purchase failed');
-      }
-    }
-  }
-
-  Future<bool> sendReceiptToBackend(PurchaseDetails purchase) async {
-    final receipt = purchase.verificationData.serverVerificationData;
-    final productId = purchase.productID;
-
-    try {
-      final response = await http.post(
-        Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/upgrade'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'Content-Type': 'application/json',
-        },
-        body: jsonEncode({
-          'receipt': receipt,
-          'productId': productId,
-        }),
-      );
-
-      return response.statusCode == 200;
-    } catch (e) {
-      print('Error sending receipt: $e');
-      return false;
-    }
-  }
-
-  void _showSnackBar(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg)));
   }
 
   @override
   void dispose() {
-    _subscription?.cancel();
+    _subscription.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_upgraded) {
-      return Scaffold(
-        appBar: AppBar(title: Text('Premium')),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('You have successfully upgraded to Premium!'),
-              if (_purchasedProductId != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Text('Plan: ${_purchasedProductId == 'premium_yearly_v2' ? 'Yearly' : 'Monthly'}'),
-                ),
-            ],
-          ),
-        ),
+    if (_loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('Upgrade to Premium')),
-      body: Center(
-        child: _available && _products.isNotEmpty
-            ? Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            for (final product in _products)
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: _purchasePending ? null : () => _buy(product),
-                  child: Text('${product.title} — ${product.price}'),
-                ),
-              ),
-            if (_purchasePending) CircularProgressIndicator(),
-          ],
-        )
-            : Text('Subscriptions will be available once approved by the App Store.'),
+      appBar: AppBar(
+        title: const Text('Upgrade to Premium'),
+        leading: BackButton(),
+      ),
+      body: _products.isEmpty
+          ? const Center(
+        child: Text(
+          "No subscriptions found. Please try again or check your StoreKit configuration.",
+          textAlign: TextAlign.center,
+        ),
+      )
+          : ListView.builder(
+        itemCount: _products.length,
+        itemBuilder: (context, index) {
+          final product = _products[index];
+          return ListTile(
+            title: Text(product.title),
+            subtitle: Text(product.description),
+            trailing: Text(product.price),
+            onTap: () {
+              // Future: purchase logic
+            },
+          );
+        },
       ),
     );
   }
