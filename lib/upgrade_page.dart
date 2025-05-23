@@ -30,7 +30,7 @@ class _UpgradePageState extends State<UpgradePage> {
       return;
     }
 
-    final response = await _iap.queryProductDetails({'premium_monthly', 'premium_yearly'});
+    final response = await _iap.queryProductDetails({'premium_monthly_v2', 'premium_yearly_v2'});
     print('📦 Loaded products: ${response.productDetails}');
     print('❗ StoreKit error: ${response.error}');
 
