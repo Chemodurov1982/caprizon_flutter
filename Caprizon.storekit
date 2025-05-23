@@ -1,0 +1,63 @@
+{
+  "identifier": "Caprizon",
+  "version": {
+    "major": 4,
+    "minor": 0
+  },
+  "settings": {
+    "_failTransactionsEnabled": false
+  },
+  "appPolicies": {
+    "eula": "",
+    "policies": [
+      {
+        "locale": "en_US",
+        "policyText": "",
+        "policyURL": ""
+      }
+    ]
+  },
+  "subscriptionGroups": [
+    {
+      "id": "group_premium",
+      "referenceName": "Premium Access Group"
+    }
+  ],
+  "products": [
+    {
+      "id": "premium_monthly_v2",
+      "referenceName": "Premium Monthly",
+      "subscriptionGroupIdentifier": "group_premium",
+      "familyShareable": false,
+      "availableInAllTerritories": true,
+      "subscription": {
+        "duration": "P1M",
+        "introductoryOffer": null,
+        "subscriptionGroupIdentifier": "group_premium",
+        "subscriptionType": "auto_renewable"
+      },
+      "price": {
+        "currencyCode": "USD",
+        "value": 0.99
+      }
+    },
+    {
+      "id": "premium_yearly_v2",
+      "referenceName": "Premium Yearly",
+      "subscriptionGroupIdentifier": "group_premium",
+      "familyShareable": false,
+      "availableInAllTerritories": true,
+      "subscription": {
+        "duration": "P1Y",
+        "introductoryOffer": null,
+        "subscriptionGroupIdentifier": "group_premium",
+        "subscriptionType": "auto_renewable"
+      },
+      "price": {
+        "currencyCode": "USD",
+        "value": 4.99
+      }
+    }
+  ],
+  "nonRenewingSubscriptions": []
+}
