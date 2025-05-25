@@ -1,0 +1,99 @@
+{
+  "@@locale": "uk",
+  "add_member_to_token": "Додати учасника до токена",
+  "add_members": "Додати учасників",
+  "add_user": "Додати користувача",
+  "amount": "Кількість",
+  "approve": "Схвалити",
+  "are_you_sure_you_want_to_delete_this_request": "Ви впевнені, що хочете видалити цей запит?",
+  "assign_user_to_token": "Призначити користувача до токена",
+"balance": "Баланс: {symbol} {balance}",
+"@balance": {
+  "placeholders": {
+    "symbol": {
+      "type": "String"
+    },
+    "balance": {
+      "type": "String"
+    }
+  }
+},
+  "cancel": "Скасувати",
+  "caprizon_wallet": "Гаманець Caprizon",
+  "create": "Створити",
+  "create_token": "Створити токен",
+  "create_tokens": "Створити токени",
+  "delete": "Видалити",
+  "delete_request": "Видалити запит",
+  "email": "Ел. пошта",
+  "enter_one_rule_per_line": "Введіть по одному правилу в кожному рядку",
+  "enter_the_participant_s_email": "Введіть електронну адресу учасника:",
+  "failed_to_delete_request": "Не вдалося видалити запит",
+  "forgot_password": "Забули пароль?",
+  "free_users_can_only_make_20_transactions": "Безкоштовні користувачі можуть здійснити лише 20 транзакцій",
+"from_to": "Від {fromName} до {toName}",
+"@from_to": {
+  "placeholders": {
+    "fromName": {
+      "type": "String"
+    },
+    "toName": {
+      "type": "String"
+    }
+  }
+},
+  "hello": "Привіт, {userName}!",
+"@hello": {
+  "placeholders": {
+    "userName": {
+      "type": "Object"
+    }
+  }
+},
+  "incoming_requests": "Вхідні запити",
+  "login": "Увійти",
+  "logout": "Вийти",
+  "message": "Повідомлення",
+  "name": "Ім’я",
+  "no_other_participants_available": "Інші учасники відсутні",
+  "no_pending_requests": "Немає запитів, що очікують",
+  "no_subscriptions_found_please_try_again_or_check_your_storekit_configuration": "Підписок не знайдено. Спробуйте ще раз або перевірте конфігурацію StoreKit.",
+  "no_transactions_found": "Транзакцій не знайдено.",
+  "password": "Пароль",
+  "pending_requests": "Очікуючі запити",
+  "recent_transactions": "Останні транзакції",
+  "register": "Зареєструватися",
+  "reject": "Відхилити",
+  "repeat_password": "Повторіть пароль",
+  "request_tokens": "Запитати токени",
+  "request_failed_to_send": "Не вдалося надіслати запит",
+  "request_sent_to_token_owner": "Запит надіслано власнику токена",
+  "save_rules": "Зберегти правила",
+  "select_a_token": "Оберіть токен",
+  "select_token": "Оберіть токен",
+  "select_user": "Оберіть користувача",
+  "send_tokens": "Надіслати токени",
+  "symbol": "Символ",
+  "token_name": "Назва токена",
+  "token_operations": "Операції з токеном",
+  "token_rules": "Правила токена",
+  "tokens": "Токени",
+  "transaction_failed": "Транзакція не вдалася",
+  "transaction_successful": "Транзакція успішна",
+  "transactions": "Транзакції",
+  "view_requests": "Переглянути вхідні запити",
+  "upgrade_to_premium": "Оновити до Преміум",
+  "view_full_history": "Переглянути повну історію",
+  "welcome_to_caprizon": "Ласкаво просимо до Caprizon",
+"your_balance": "Ваш баланс: {symbol} {amount}",
+"@your_balance": {
+  "placeholders": {
+    "symbol": {
+      "type": "String"
+    },
+    "amount": {
+      "type": "String"
+    }
+  }
+}
+}

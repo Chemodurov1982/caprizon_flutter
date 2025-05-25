@@ -15,6 +15,7 @@ import 'transaction_history_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'assign_user_page.dart';
 import 'incoming_requests_page.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class HomePage extends StatefulWidget {
   final String token;
@@ -376,7 +377,7 @@ class _HomePageState extends State<HomePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Hello, $userName!',
+                AppLocalizations.of(context)!.hello(userName),
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     Row(
@@ -394,7 +395,7 @@ class _HomePageState extends State<HomePage> {
                                 await fetchUserName();
                               }
                             },
-                            child: const Text('Upgrade to Premium'),
+                            child: Text(AppLocalizations.of(context)!.upgrade_to_premium),
                           ),
                         TextButton(
                           onPressed: () async {
@@ -405,7 +406,7 @@ class _HomePageState extends State<HomePage> {
                               MaterialPageRoute(builder: (_) => const EntryPage()),
                             );
                           },
-                          child: const Text('Logout'),
+                          child: Text(AppLocalizations.of(context)!.logout),
                         ),
                       ],
                     ),
@@ -427,19 +428,22 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Balance: ${selectedToken?['symbol'] ?? ''} ${selectedBalance.toStringAsFixed(2)}',
+                    AppLocalizations.of(context)!.balance(
+                      selectedToken?['symbol'] ?? '',
+                      selectedBalance.toStringAsFixed(2),
+                    ),
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 if (isAdmin) ...[
                   ElevatedButton(
                     onPressed: openMintPage,
-                    child: const Text('Create Tokens'),
+                    child: Text(AppLocalizations.of(context)!.create_tokens),
                   ),
                   const SizedBox(height: 8),
                   ElevatedButton(
                     onPressed: openAssignUserPage,
-                    child: const Text('Add Members'),
+                    child: Text(AppLocalizations.of(context)!.add_members),
                   ),
                   const SizedBox(height: 8),
                 ],
@@ -458,7 +462,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       );
                     },
-                    child: const Text('Token Rules'),
+                    child: Text(AppLocalizations.of(context)!.token_rules),
                   ),
                 const SizedBox(height: 8),
 
@@ -466,7 +470,7 @@ class _HomePageState extends State<HomePage> {
                 if (selectedTokenId != null)
                   ElevatedButton(
                     onPressed: () => openTransferPage(isAdmin),
-                    child: const Text('Transactions'),
+                    child: Text(AppLocalizations.of(context)!.transactions),
                   ),
                 const SizedBox(height: 8),
                 if (sentRequestsCount > 0)
@@ -482,7 +486,7 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ).then((_) => fetchSentRequests()); // обновить после возврата
                     },
-                    child: Text('Pending Requests ($sentRequestsCount)'),
+                    child: Text('$AppLocalizations.of(context)!.pending_request ($sentRequestsCount)'),
                   ),
 
 
@@ -491,7 +495,7 @@ class _HomePageState extends State<HomePage> {
 
                   ElevatedButton(
                     onPressed: openIncomingRequests,
-                    child: Text('View Requests ($pendingRequestsCount)'),
+                    child: Text('$AppLocalizations.of(context)!.view_requests ($pendingRequestsCount)'),
                   ),
                   const SizedBox(height: 16),
                 ] else
@@ -499,11 +503,11 @@ class _HomePageState extends State<HomePage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Recent Transactions',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text(AppLocalizations.of(context)!.recent_transactions,
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                     TextButton(
                         onPressed: openHistoryPage,
-                        child: const Text('View Full History')),
+                        child: Text(AppLocalizations.of(context)!.view_full_history)),
                   ],
                 ),
                 ...recentTransactions.map((tx) {
@@ -513,7 +517,12 @@ class _HomePageState extends State<HomePage> {
                   final amountText = '$sign$symbol ${tx['amount']}';
 
                   return ListTile(
-                    title: Text('From ${tx['fromName']} to ${tx['toName']}'),
+                    title: Text(
+                        AppLocalizations.of(context)!.from_to(
+                          tx['fromName'] ?? '',
+                          tx['toName'] ?? '',
+                        )
+                    ),
                     subtitle: Text(tx['message'] ?? ''),
                     trailing: Text(
                       amountText,

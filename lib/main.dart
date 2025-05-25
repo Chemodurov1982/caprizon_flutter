@@ -4,6 +4,8 @@ import 'entry_page.dart';
 import 'login_page.dart';
 import 'home_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // подключение локализаций
 
 void main() {
   runApp(const MyApp());
@@ -37,6 +39,24 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Caprizon',
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: const [
+        Locale('en'),
+        Locale('uk'),
+      ],
+      localeResolutionCallback: (locale, supportedLocales) {
+        for (var supported in supportedLocales) {
+          if (supported.languageCode == locale?.languageCode) {
+            return supported;
+          }
+        }
+        return supportedLocales.first;
+      },
       theme: ThemeData(
         colorScheme: colorScheme,
         useMaterial3: true,
@@ -57,16 +77,14 @@ class MyApp extends StatelessWidget {
           ),
         ),
         switchTheme: SwitchThemeData(
-          thumbColor: MaterialStateProperty.resolveWith<Color?>(
-                (states) => states.contains(MaterialState.selected)
-                ? secondaryColor
-                : null,
-          ),
-          trackColor: MaterialStateProperty.resolveWith<Color?>(
-                (states) => states.contains(MaterialState.selected)
-                ? secondaryColor.withOpacity(0.5)
-                : null,
-          ),
+          thumbColor: MaterialStateProperty.resolveWith<Color?>((states) =>
+          states.contains(MaterialState.selected)
+              ? secondaryColor
+              : null),
+          trackColor: MaterialStateProperty.resolveWith<Color?>((states) =>
+          states.contains(MaterialState.selected)
+              ? secondaryColor.withOpacity(0.5)
+              : null),
         ),
         checkboxTheme: CheckboxThemeData(
           fillColor: MaterialStateProperty.all(secondaryColor),

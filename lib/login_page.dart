@@ -1,10 +1,11 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'home_page.dart';
-import 'package:lottie/lottie.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'home_page.dart';
+import 'forgot_password_page.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -14,65 +15,91 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  String error = '';
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  bool isLoading = false;
+  String? error;
 
   Future<void> login() async {
+    setState(() {
+      isLoading = true;
+      error = null;
+    });
+
     final response = await http.post(
       Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/login'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
-        'email': emailController.text,
-        'password': passwordController.text,
+        'email': emailController.text.trim(),
+        'password': passwordController.text.trim(),
       }),
     );
 
+    setState(() => isLoading = false);
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      final token = data['token'];
-      final userId = data['userId'];
-
-      final profileResp = await http.get(
-        Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/me'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', token);
-      await prefs.setString('userId', userId);
-
-      if (profileResp.statusCode == 200) {
-        final profile = jsonDecode(profileResp.body);
-        final isPremium = profile['isPremium'] ?? false;
-        await prefs.setBool('isPremium', isPremium);
-      }
+      await prefs.setString('token', data['token']);
+      await prefs.setString('userId', data['userId']);
 
       Navigator.pushReplacement(
         context,
-        CupertinoPageRoute(
-          builder: (context) => HomePage(token: token, userId: userId),
+        MaterialPageRoute(
+          builder: (context) => HomePage(
+            userId: data['userId'],
+            token: data['token'],
+          ),
         ),
       );
     } else {
-      setState(() => error = 'Login failed');
+      setState(() {
+        error = jsonDecode(response.body)['error'] ?? 'Login failed';
+      });
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.login)),
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email')),
-            TextField(controller: passwordController, decoration: const InputDecoration(labelText: 'Password'), obscureText: true),
+            TextField(
+              controller: emailController,
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.email),
+            ),
+            TextField(
+              controller: passwordController,
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.password),
+              obscureText: true,
+            ),
             const SizedBox(height: 16),
-            ElevatedButton(onPressed: login, child: const Text('Login')),
-            if (error.isNotEmpty) Text(error, style: const TextStyle(color: Colors.red)),
+            ElevatedButton(
+              onPressed: isLoading ? null : login,
+              child: isLoading
+                  ? const CircularProgressIndicator()
+                  : Text(AppLocalizations.of(context)!.login),
+            ),
+            if (error != null) ...[
+              const SizedBox(height: 12),
+              Text(error!, style: const TextStyle(color: Colors.red)),
+            ],
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+                );
+              },
+              child: Text(AppLocalizations.of(context)!.forgot_password),
+            ),
           ],
         ),
       ),

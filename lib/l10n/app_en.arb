@@ -1,0 +1,99 @@
+{
+  "@@locale": "en",
+  "add_member_to_token": "Add Member to Token",
+  "add_members": "Add Members",
+  "add_user": "Add User",
+  "amount": "Amount",
+  "approve": "Approve",
+  "are_you_sure_you_want_to_delete_this_request": "Are you sure you want to delete this request?",
+  "assign_user_to_token": "Assign User to Token",
+"balance": "Balance: {symbol} {balance}",
+"@balance": {
+  "placeholders": {
+    "symbol": {
+      "type": "String"
+    },
+    "balance": {
+      "type": "String"
+    }
+  }
+},
+  "cancel": "Cancel",
+  "caprizon_wallet": "Caprizon Wallet",
+  "create": "Create",
+  "create_token": "Create Token",
+  "create_tokens": "Create Tokens",
+  "delete": "Delete",
+  "delete_request": "Delete Request",
+  "email": "Email",
+  "enter_one_rule_per_line": "Enter one rule per line",
+  "enter_the_participant_s_email": "Enter the participant\\'s email:",
+  "failed_to_delete_request": "Failed to delete request",
+  "forgot_password": "Forgot password?",
+  "free_users_can_only_make_20_transactions": "Free users can only make 20 transactions",
+"from_to": "From {fromName} to {toName}",
+"@from_to": {
+  "placeholders": {
+    "fromName": {
+      "type": "String"
+    },
+    "toName": {
+      "type": "String"
+    }
+  }
+},
+  "hello": "Hello, {userName}!",
+"@hello": {
+  "placeholders": {
+    "userName": {
+      "type": "Object"
+    }
+  }
+},
+  "incoming_requests": "Incoming Requests",
+  "login": "Login",
+  "logout": "Logout",
+  "message": "Message",
+  "name": "Name",
+  "no_other_participants_available": "No other participants available",
+  "no_pending_requests": "No pending requests",
+  "no_subscriptions_found_please_try_again_or_check_your_storekit_configuration": "No subscriptions found. Please try again or check your StoreKit configuration.",
+  "no_transactions_found": "No transactions found.",
+  "password": "Password",
+  "pending_requests": "Pending Requests",
+  "recent_transactions": "Recent Transactions",
+  "register": "Register",
+  "reject": "Reject",
+  "repeat_password": "Repeat Password",
+  "request_tokens": "Request Tokens",
+  "request_failed_to_send": "Request failed to send",
+  "request_sent_to_token_owner": "Request sent to token owner",
+  "save_rules": "Save Rules",
+  "select_a_token": "Select a Token",
+  "select_token": "Select token",
+  "select_user": "Select user",
+  "send_tokens": "Send Tokens",
+  "symbol": "Symbol",
+  "token_name": "Token Name",
+  "token_operations": "Token Operations",
+  "token_rules": "Token Rules",
+  "tokens": "Tokens",
+  "transaction_failed": "Transaction failed",
+  "transaction_successful": "Transaction successful",
+  "transactions": "Transactions",
+  "upgrade_to_premium": "Upgrade to Premium",
+  "view_requests": "View requests",
+  "view_full_history": "View Full History",
+  "welcome_to_caprizon": "Welcome to Caprizon",
+"your_balance": "Your balance: {symbol} {amount}",
+"@your_balance": {
+  "placeholders": {
+    "symbol": {
+      "type": "String"
+    },
+    "amount": {
+      "type": "String"
+    }
+  }
+}
+}

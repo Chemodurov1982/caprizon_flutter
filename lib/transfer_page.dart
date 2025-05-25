@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 
 class TransferPage extends StatefulWidget {
@@ -185,7 +186,7 @@ class _TransferPageState extends State<TransferPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Token Operations')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.token_operations)),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: isLoading
@@ -194,7 +195,11 @@ class _TransferPageState extends State<TransferPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Отображаем баланс текущего пользователя
-            Text('Your balance: ${widget.tokenSymbol} ${userBalance.toStringAsFixed(2)}',
+            Text(
+            AppLocalizations.of(context)!.your_balance(
+          widget.tokenSymbol,
+          userBalance.toStringAsFixed(2),
+        ),
             style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
@@ -221,13 +226,13 @@ class _TransferPageState extends State<TransferPage> {
             const SizedBox(height: 16),
             TextField(
               controller: amountController,
-              decoration: const InputDecoration(labelText: 'Amount'),
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.amount),
               keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 8),
             TextField(
               controller: messageController,
-              decoration: const InputDecoration(labelText: 'Message'),
+              decoration: InputDecoration(labelText: AppLocalizations.of(context)!.message),
             ),
             const SizedBox(height: 24),
             Row(
@@ -235,14 +240,14 @@ class _TransferPageState extends State<TransferPage> {
                 Expanded(
                   child: ElevatedButton(
                     onPressed: onSendPressed,
-                    child: const Text('Send Tokens'),
+                    child: Text(AppLocalizations.of(context)!.send_tokens),
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: onRequestPressed,
-                    child: const Text('Request Tokens'),
+                    child: Text(AppLocalizations.of(context)!.request_tokens),
                   ),
                 ),
               ],
