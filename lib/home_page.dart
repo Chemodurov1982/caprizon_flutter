@@ -486,7 +486,9 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ).then((_) => fetchSentRequests()); // обновить после возврата
                     },
-                    child: Text('$AppLocalizations.of(context)!.pending_request ($sentRequestsCount)'),
+                    child: Text(
+                      AppLocalizations.of(context)!.pending_request_with_count(sentRequestsCount),
+                    ),
                   ),
 
 

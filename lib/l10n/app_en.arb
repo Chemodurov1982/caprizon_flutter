@@ -61,6 +61,14 @@
   "no_transactions_found": "No transactions found.",
   "password": "Password",
   "pending_requests": "Pending Requests",
+"pending_request_with_count": "Pending Requests ({count})",
+"@pending_request_with_count": {
+  "placeholders": {
+    "count": {
+      "type": "int"
+    }
+  }
+},
   "recent_transactions": "Recent Transactions",
   "register": "Register",
   "reject": "Reject",

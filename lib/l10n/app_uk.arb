@@ -61,6 +61,14 @@
   "no_transactions_found": "Транзакцій не знайдено.",
   "password": "Пароль",
   "pending_requests": "Очікуючі запити",
+"pending_request_with_count": "Очікуючі запити ({count})",
+"@pending_request_with_count": {
+  "placeholders": {
+    "count": {
+      "type": "int"
+    }
+  }
+},
   "recent_transactions": "Останні транзакції",
   "register": "Зареєструватися",
   "reject": "Відхилити",
