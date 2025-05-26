@@ -97,7 +97,6 @@ class _UpgradePageState extends State<UpgradePage> {
             title: Text(product.title),
             subtitle: Text(product.description),
             trailing: Text(product.price),
-            onTap: () {
               onTap: () async {
                 final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
                 final bool available = await InAppPurchase.instance.isAvailable();
@@ -118,9 +117,7 @@ class _UpgradePageState extends State<UpgradePage> {
                     const SnackBar(content: Text("Purchase failed")),
                   );
                 }
-              };
-
-            },
+              }
           );
         },
       ),
