@@ -20,7 +20,30 @@ class _UpgradePageState extends State<UpgradePage> {
   void initState() {
     super.initState();
     _initialize();
+
+    _subscription = InAppPurchase.instance.purchaseStream.listen(
+          (purchases) {
+        for (final purchase in purchases) {
+          if (purchase.status == PurchaseStatus.purchased) {
+            print("✅ Покупка успешна: ${purchase.productID}");
+
+            // Пример: отправка данных на сервер
+            // await _verifyPurchase(purchase.verificationData.serverVerificationData, purchase.productID);
+
+          } else if (purchase.status == PurchaseStatus.error) {
+            print("❌ Ошибка при покупке: ${purchase.error}");
+          }
+        }
+      },
+      onDone: () {
+        _subscription.cancel();
+      },
+      onError: (error) {
+        print("❗ Ошибка потока покупок: $error");
+      },
+    );
   }
+
 
   void _initialize() async {
     final bool available = await _iap.isAvailable();
@@ -75,7 +98,28 @@ class _UpgradePageState extends State<UpgradePage> {
             subtitle: Text(product.description),
             trailing: Text(product.price),
             onTap: () {
-              // Future: purchase logic
+              onTap: () async {
+                final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
+                final bool available = await InAppPurchase.instance.isAvailable();
+
+                if (!available) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("In-app purchases not available")),
+                  );
+                  return;
+                }
+
+                final success = await InAppPurchase.instance.buyNonConsumable(
+                  purchaseParam: purchaseParam,
+                );
+
+                if (!success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text("Purchase failed")),
+                  );
+                }
+              };
+
             },
           );
         },

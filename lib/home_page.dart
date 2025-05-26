@@ -497,7 +497,8 @@ class _HomePageState extends State<HomePage> {
 
                   ElevatedButton(
                     onPressed: openIncomingRequests,
-                    child: Text('$AppLocalizations.of(context)!.view_requests ($pendingRequestsCount)'),
+                    child: Text(AppLocalizations.of(context)!.view_requests_with_count(pendingRequestsCount)
+                    ),
                   ),
                   const SizedBox(height: 16),
                 ] else

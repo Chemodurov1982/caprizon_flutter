@@ -90,6 +90,14 @@
   "transaction_successful": "Транзакція успішна",
   "transactions": "Транзакції",
   "view_requests": "Переглянути вхідні запити",
+  "view_requests_with_count": "Переглянути запити ({count})",
+  "@view_requests_with_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "upgrade_to_premium": "Оновити до Преміум",
   "view_full_history": "Переглянути повну історію",
   "welcome_to_caprizon": "Ласкаво просимо до Caprizon",

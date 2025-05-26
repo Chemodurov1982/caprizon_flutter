@@ -91,6 +91,14 @@
   "transactions": "Transactions",
   "upgrade_to_premium": "Upgrade to Premium",
   "view_requests": "View requests",
+  "view_requests_with_count": "View requests ({count})",
+  "@view_requests_with_count": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "view_full_history": "View Full History",
   "welcome_to_caprizon": "Welcome to Caprizon",
 "your_balance": "Your balance: {symbol} {amount}",
