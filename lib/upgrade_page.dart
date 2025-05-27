@@ -51,8 +51,8 @@ class _UpgradePageState extends State<UpgradePage> {
           _pendingProductIds.remove(purchase.productID);
         }
 
-        if (purchase.status == PurchaseStatus.purchased) {
-          _appendLog('✅ Покупка завершена: ${purchase.productID}, отправляем на сервер...');
+        if (purchase.status == PurchaseStatus.purchased || purchase.status == PurchaseStatus.restored) {
+          _appendLog('✅ Покупка/восстановление завершено: ${purchase.productID}, отправляем на сервер...');
           _verifyAndUpgrade(purchase);
           _pendingProductIds.remove(purchase.productID);
         }
