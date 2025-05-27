@@ -19,7 +19,7 @@ class _UpgradePageState extends State<UpgradePage> {
   List<ProductDetails> _products = [];
   final String _monthlyId = 'premium_monthly_v2';
   final String _yearlyId = 'premium_yearly_v2';
-  final Set<String?> _processedPurchaseIds = {}; // Track processed purchases
+  final Set<String> _pendingProductIds = {}; // Track pending product IDs
 
   @override
   void initState() {
@@ -27,12 +27,16 @@ class _UpgradePageState extends State<UpgradePage> {
     purchaseUpdated.listen((purchases) {
       for (var purchase in purchases) {
         print('🛒 Обновление покупки: ${purchase.status}, ID: ${purchase.purchaseID}');
-        if (purchase.status == PurchaseStatus.purchased &&
-            !_processedPurchaseIds.contains(purchase.purchaseID)) {
+
+        if (purchase.status == PurchaseStatus.purchased) {
           print('✅ Новая покупка, обрабатываем...');
-          _processedPurchaseIds.add(purchase.purchaseID);
           _verifyAndUpgrade(purchase);
-          _inAppPurchase.completePurchase(purchase); // Завершаем покупку
+          _inAppPurchase.completePurchase(purchase);
+          _pendingProductIds.remove(purchase.productID);
+        }
+
+        if (purchase.status == PurchaseStatus.error || purchase.status == PurchaseStatus.canceled) {
+          _pendingProductIds.remove(purchase.productID);
         }
       }
     });
@@ -43,8 +47,8 @@ class _UpgradePageState extends State<UpgradePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    print('🔄 Смена пользователя, очищаем _processedPurchaseIds');
-    _processedPurchaseIds.clear(); // Clear processed purchases on user switch
+    print('🔄 Смена пользователя, очищаем _pendingProductIds');
+    _pendingProductIds.clear();
   }
 
   Future<void> _initialize() async {
@@ -106,7 +110,7 @@ class _UpgradePageState extends State<UpgradePage> {
   }
 
   bool _isPurchasePending(String productId) {
-    return _processedPurchaseIds.contains(productId);
+    return _pendingProductIds.contains(productId);
   }
 
   @override
@@ -130,6 +134,7 @@ class _UpgradePageState extends State<UpgradePage> {
                 return;
               }
 
+              _pendingProductIds.add(product.id);
               final PurchaseParam purchaseParam =
               PurchaseParam(productDetails: product);
               _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
