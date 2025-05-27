@@ -28,15 +28,14 @@ class _UpgradePageState extends State<UpgradePage> {
       for (var purchase in purchases) {
         print('🛒 Обновление покупки: ${purchase.status}, ID: ${purchase.purchaseID}');
 
-        if (purchase.status == PurchaseStatus.pending && purchase.purchaseID == null) {
-          print('🔁 Восстанавливаем зависшую покупку');
-          _inAppPurchase.restorePurchases();
-          _pendingProductIds.remove(purchase.productID);
-        }
-
         if (purchase.pendingCompletePurchase) {
           print('⏳ Завершаем незавершённую покупку: ${purchase.productID}');
           _inAppPurchase.completePurchase(purchase);
+          continue;
+        }
+
+        if (purchase.status == PurchaseStatus.pending) {
+          _pendingProductIds.remove(purchase.productID);
         }
 
         if (purchase.status == PurchaseStatus.purchased) {
@@ -129,29 +128,46 @@ class _UpgradePageState extends State<UpgradePage> {
     return Scaffold(
       appBar: AppBar(title: Text('Upgrade to Premium')),
       body: _available
-          ? ListView(
-        children: _products.map((product) {
-          return ListTile(
-            title: Text(product.title),
-            subtitle: Text(product.description),
-            trailing: Text(product.price),
-            onTap: () {
-              print('👆 Нажата подписка: ${product.id}');
-              if (_isPurchasePending(product.id)) {
-                print('⚠️ Подписка уже в процессе оформления: ${product.id}');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Подписка уже оформляется')),
-                );
-                return;
-              }
+          ? Column(
+        children: [
+          Expanded(
+            child: ListView(
+              children: _products.map((product) {
+                return ListTile(
+                  title: Text(product.title),
+                  subtitle: Text(product.description),
+                  trailing: Text(product.price),
+                  onTap: () async {
+                    print('👆 Нажата подписка: ${product.id}');
 
-              _pendingProductIds.add(product.id);
-              final PurchaseParam purchaseParam =
-              PurchaseParam(productDetails: product);
-              _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+                    if (_isPurchasePending(product.id)) {
+                      print('⚠️ Подписка уже в процессе оформления: ${product.id}');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Подписка уже оформляется')),
+                      );
+                      return;
+                    }
+
+                    _pendingProductIds.add(product.id);
+                    final PurchaseParam purchaseParam =
+                    PurchaseParam(productDetails: product);
+                    _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+                  },
+                );
+              }).toList(),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              print('🔄 Восстановление покупок...');
+              await _inAppPurchase.restorePurchases();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Восстановление покупок запущено')),
+              );
             },
-          );
-        }).toList(),
+            child: Text('Восстановить покупки'),
+          ),
+        ],
       )
           : Center(child: Text('Покупки недоступны')),
     );
