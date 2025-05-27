@@ -16,6 +16,7 @@ class UpgradePage extends StatefulWidget {
 class _UpgradePageState extends State<UpgradePage> {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   bool _available = true;
+  bool _restoring = false;
   List<ProductDetails> _products = [];
   final String _monthlyId = 'premium_monthly_v2';
   final String _yearlyId = 'premium_yearly_v2';
@@ -27,6 +28,11 @@ class _UpgradePageState extends State<UpgradePage> {
     purchaseUpdated.listen((purchases) {
       for (var purchase in purchases) {
         print('🛒 Обновление покупки: ${purchase.status}, ID: ${purchase.purchaseID}');
+
+        if (purchase.purchaseID == null) {
+          print('⚠️ Покупка без ID, пропускаем: ${purchase.productID}');
+          continue;
+        }
 
         if (purchase.pendingCompletePurchase) {
           print('⏳ Завершаем незавершённую покупку: ${purchase.productID}');
@@ -157,13 +163,20 @@ class _UpgradePageState extends State<UpgradePage> {
               }).toList(),
             ),
           ),
+          if (_restoring) Padding(
+            padding: EdgeInsets.all(8),
+            child: CircularProgressIndicator(),
+          ),
           ElevatedButton(
             onPressed: () async {
+              setState(() => _restoring = true);
               print('🔄 Восстановление покупок...');
               await _inAppPurchase.restorePurchases();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Восстановление покупок запущено')),
               );
+              await Future.delayed(Duration(seconds: 2));
+              setState(() => _restoring = false);
             },
             child: Text('Восстановить покупки'),
           ),
