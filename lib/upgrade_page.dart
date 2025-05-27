@@ -28,10 +28,14 @@ class _UpgradePageState extends State<UpgradePage> {
       for (var purchase in purchases) {
         print('🛒 Обновление покупки: ${purchase.status}, ID: ${purchase.purchaseID}');
 
+        if (purchase.pendingCompletePurchase) {
+          print('⏳ Завершаем незавершённую покупку: ${purchase.productID}');
+          _inAppPurchase.completePurchase(purchase);
+        }
+
         if (purchase.status == PurchaseStatus.purchased) {
           print('✅ Новая покупка, обрабатываем...');
           _verifyAndUpgrade(purchase);
-          _inAppPurchase.completePurchase(purchase);
           _pendingProductIds.remove(purchase.productID);
         }
 
