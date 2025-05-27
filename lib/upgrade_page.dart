@@ -53,6 +53,7 @@ class _UpgradePageState extends State<UpgradePage> {
     super.didChangeDependencies();
     print('🔄 Смена пользователя, очищаем _pendingProductIds');
     _pendingProductIds.clear();
+    _inAppPurchase.restorePurchases();
   }
 
   Future<void> _initialize() async {
