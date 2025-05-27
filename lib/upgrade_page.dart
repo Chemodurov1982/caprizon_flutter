@@ -3,6 +3,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/services.dart';
 
 class UpgradePage extends StatefulWidget {
   final String token;
@@ -178,7 +179,15 @@ class _UpgradePageState extends State<UpgradePage> {
             onPressed: () async {
               setState(() => _restoring = true);
               _appendLog('🔄 Запрос на восстановление покупок');
-              await _inAppPurchase.restorePurchases();
+              try {
+                await _inAppPurchase.restorePurchases();
+              } on PlatformException catch (e) {
+                _appendLog('❌ SKError: code=\${e.code}, message=\${e.message}');
+                _appendLog('❌ Ошибка при восстановлении: \$e');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Ошибка восстановления: \$e')),
+                );
+              }
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Восстановление покупок запущено')),
               );
