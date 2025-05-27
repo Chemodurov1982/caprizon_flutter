@@ -17,25 +17,32 @@ class _UpgradePageState extends State<UpgradePage> {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   bool _available = true;
   bool _restoring = false;
+  String _debugLog = '';
   List<ProductDetails> _products = [];
   final String _monthlyId = 'premium_monthly_v2';
   final String _yearlyId = 'premium_yearly_v2';
   final Set<String> _pendingProductIds = {}; // Track pending product IDs
+
+  void _appendLog(String msg) {
+    setState(() {
+      _debugLog = '[${DateTime.now().toIso8601String()}] $msg\n' + _debugLog;
+    });
+  }
 
   @override
   void initState() {
     final purchaseUpdated = _inAppPurchase.purchaseStream;
     purchaseUpdated.listen((purchases) {
       for (var purchase in purchases) {
-        print('🛒 Обновление покупки: ${purchase.status}, ID: ${purchase.purchaseID}');
+        _appendLog('🔔 purchaseStream: status=${purchase.status}, productID=${purchase.productID}, purchaseID=${purchase.purchaseID}');
 
         if (purchase.purchaseID == null) {
-          print('⚠️ Покупка без ID, пропускаем: ${purchase.productID}');
+          _appendLog('⚠️ Покупка без ID, пропускаем: ${purchase.productID}');
           continue;
         }
 
         if (purchase.pendingCompletePurchase) {
-          print('⏳ Завершаем незавершённую покупку: ${purchase.productID}');
+          _appendLog('⏳ Завершаем покупку: ${purchase.productID}');
           _inAppPurchase.completePurchase(purchase);
           continue;
         }
@@ -45,12 +52,13 @@ class _UpgradePageState extends State<UpgradePage> {
         }
 
         if (purchase.status == PurchaseStatus.purchased) {
-          print('✅ Новая покупка, обрабатываем...');
+          _appendLog('✅ Покупка завершена: ${purchase.productID}, отправляем на сервер...');
           _verifyAndUpgrade(purchase);
           _pendingProductIds.remove(purchase.productID);
         }
 
         if (purchase.status == PurchaseStatus.error || purchase.status == PurchaseStatus.canceled) {
+          _appendLog('❌ Ошибка или отмена: ${purchase.productID}');
           _pendingProductIds.remove(purchase.productID);
         }
       }
@@ -62,7 +70,6 @@ class _UpgradePageState extends State<UpgradePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    print('🔄 Смена пользователя, очищаем _pendingProductIds');
     _pendingProductIds.clear();
     _inAppPurchase.restorePurchases();
   }
@@ -70,26 +77,25 @@ class _UpgradePageState extends State<UpgradePage> {
   Future<void> _initialize() async {
     final isAvailable = await _inAppPurchase.isAvailable();
     setState(() => _available = isAvailable);
-    print('🛍️ Покупки доступны: $isAvailable');
+    _appendLog('🛍️ Покупки доступны: $isAvailable');
     if (!isAvailable) return;
 
     const Set<String> _kIds = {'premium_monthly_v2', 'premium_yearly_v2'};
     final ProductDetailsResponse response =
     await _inAppPurchase.queryProductDetails(_kIds);
     if (response.notFoundIDs.isNotEmpty) {
-      print('❌ Не найдены продукты: ${response.notFoundIDs}');
+      _appendLog('❌ Не найдены продукты: ${response.notFoundIDs}');
     }
     setState(() => _products = response.productDetails);
-    print('📦 Найденные продукты: ${_products.map((p) => p.id).toList()}');
+    _appendLog('📦 Найденные продукты: ${_products.map((p) => p.id).toList()}');
   }
 
   Future<void> _verifyAndUpgrade(PurchaseDetails purchase) async {
-    print('📨 Отправка подписки на сервер...');
     final receipt = purchase.verificationData.serverVerificationData;
     final productId = purchase.productID;
 
     if (widget.token.isEmpty) {
-      print('🚫 Токен пустой');
+      _appendLog('🚫 Токен пустой, отмена.');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Ошибка: токен не найден')),
       );
@@ -108,7 +114,7 @@ class _UpgradePageState extends State<UpgradePage> {
       }),
     );
 
-    print('🔄 Ответ сервера: ${response.statusCode}, ${response.body}');
+    _appendLog('📡 Ответ сервера: ${response.statusCode}, ${response.body}');
 
     final data = jsonDecode(response.body);
     if (response.statusCode == 200 && data['success'] == true) {
@@ -144,10 +150,10 @@ class _UpgradePageState extends State<UpgradePage> {
                   subtitle: Text(product.description),
                   trailing: Text(product.price),
                   onTap: () async {
-                    print('👆 Нажата подписка: ${product.id}');
+                    _appendLog('👆 Нажата подписка: ${product.id}');
 
                     if (_isPurchasePending(product.id)) {
-                      print('⚠️ Подписка уже в процессе оформления: ${product.id}');
+                      _appendLog('⚠️ Уже в процессе оформления: ${product.id}');
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Подписка уже оформляется')),
                       );
@@ -163,14 +169,15 @@ class _UpgradePageState extends State<UpgradePage> {
               }).toList(),
             ),
           ),
-          if (_restoring) Padding(
-            padding: EdgeInsets.all(8),
-            child: CircularProgressIndicator(),
-          ),
+          if (_restoring)
+            Padding(
+              padding: EdgeInsets.all(8),
+              child: CircularProgressIndicator(),
+            ),
           ElevatedButton(
             onPressed: () async {
               setState(() => _restoring = true);
-              print('🔄 Восстановление покупок...');
+              _appendLog('🔄 Запрос на восстановление покупок');
               await _inAppPurchase.restorePurchases();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text('Восстановление покупок запущено')),
@@ -180,6 +187,23 @@ class _UpgradePageState extends State<UpgradePage> {
             },
             child: Text('Восстановить покупки'),
           ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text('Debug Log:', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+          Expanded(
+            child: Container(
+              color: Colors.black,
+              padding: EdgeInsets.all(8),
+              child: SingleChildScrollView(
+                reverse: true,
+                child: Text(
+                  _debugLog,
+                  style: TextStyle(color: Colors.green, fontFamily: 'monospace'),
+                ),
+              ),
+            ),
+          )
         ],
       )
           : Center(child: Text('Покупки недоступны')),
