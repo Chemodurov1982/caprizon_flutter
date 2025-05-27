@@ -26,10 +26,13 @@ class _UpgradePageState extends State<UpgradePage> {
     final purchaseUpdated = _inAppPurchase.purchaseStream;
     purchaseUpdated.listen((purchases) {
       for (var purchase in purchases) {
+        print('🛒 Обновление покупки: ${purchase.status}, ID: ${purchase.purchaseID}');
         if (purchase.status == PurchaseStatus.purchased &&
             !_processedPurchaseIds.contains(purchase.purchaseID)) {
+          print('✅ Новая покупка, обрабатываем...');
           _processedPurchaseIds.add(purchase.purchaseID);
           _verifyAndUpgrade(purchase);
+          _inAppPurchase.completePurchase(purchase); // Завершаем покупку
         }
       }
     });
@@ -40,28 +43,33 @@ class _UpgradePageState extends State<UpgradePage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    print('🔄 Смена пользователя, очищаем _processedPurchaseIds');
     _processedPurchaseIds.clear(); // Clear processed purchases on user switch
   }
 
   Future<void> _initialize() async {
     final isAvailable = await _inAppPurchase.isAvailable();
     setState(() => _available = isAvailable);
+    print('🛍️ Покупки доступны: $isAvailable');
     if (!isAvailable) return;
 
     const Set<String> _kIds = {'premium_monthly_v2', 'premium_yearly_v2'};
     final ProductDetailsResponse response =
     await _inAppPurchase.queryProductDetails(_kIds);
     if (response.notFoundIDs.isNotEmpty) {
-      print('Не найдены продукты: \${response.notFoundIDs}');
+      print('❌ Не найдены продукты: ${response.notFoundIDs}');
     }
     setState(() => _products = response.productDetails);
+    print('📦 Найденные продукты: ${_products.map((p) => p.id).toList()}');
   }
 
   Future<void> _verifyAndUpgrade(PurchaseDetails purchase) async {
+    print('📨 Отправка подписки на сервер...');
     final receipt = purchase.verificationData.serverVerificationData;
     final productId = purchase.productID;
 
     if (widget.token.isEmpty) {
+      print('🚫 Токен пустой');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Ошибка: токен не найден')),
       );
@@ -72,13 +80,15 @@ class _UpgradePageState extends State<UpgradePage> {
       Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/upgrade'),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer \${widget.token}',
+        'Authorization': 'Bearer ${widget.token}',
       },
       body: jsonEncode({
         'receipt': receipt,
         'productId': productId,
       }),
     );
+
+    print('🔄 Ответ сервера: ${response.statusCode}, ${response.body}');
 
     final data = jsonDecode(response.body);
     if (response.statusCode == 200 && data['success'] == true) {
@@ -90,9 +100,13 @@ class _UpgradePageState extends State<UpgradePage> {
     } else {
       final errorMessage = data['error'] ?? 'неизвестная ошибка';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка: \$errorMessage')),
+        SnackBar(content: Text('Ошибка: $errorMessage')),
       );
     }
+  }
+
+  bool _isPurchasePending(String productId) {
+    return _processedPurchaseIds.contains(productId);
   }
 
   @override
@@ -107,6 +121,15 @@ class _UpgradePageState extends State<UpgradePage> {
             subtitle: Text(product.description),
             trailing: Text(product.price),
             onTap: () {
+              print('👆 Нажата подписка: ${product.id}');
+              if (_isPurchasePending(product.id)) {
+                print('⚠️ Подписка уже в процессе оформления: ${product.id}');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Подписка уже оформляется')),
+                );
+                return;
+              }
+
               final PurchaseParam purchaseParam =
               PurchaseParam(productDetails: product);
               _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
