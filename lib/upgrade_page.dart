@@ -1,126 +1,111 @@
 import 'package:flutter/material.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'dart:async';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class UpgradePage extends StatefulWidget {
   final String token;
-  const UpgradePage({Key? key, required this.token}) : super(key: key);
+
+  UpgradePage({required this.token});
 
   @override
-  State<UpgradePage> createState() => _UpgradePageState();
+  _UpgradePageState createState() => _UpgradePageState();
 }
 
 class _UpgradePageState extends State<UpgradePage> {
-  final InAppPurchase _iap = InAppPurchase.instance;
-  late StreamSubscription<List<PurchaseDetails>> _subscription;
+  final InAppPurchase _inAppPurchase = InAppPurchase.instance;
+  bool _available = true;
   List<ProductDetails> _products = [];
-  bool _loading = true;
+  final String _monthlyId = 'premium_monthly_v2';
+  final String _yearlyId = 'premium_yearly_v2';
 
   @override
   void initState() {
-    super.initState();
-    _initialize();
-
-    _subscription = InAppPurchase.instance.purchaseStream.listen(
-          (purchases) {
-        for (final purchase in purchases) {
-          if (purchase.status == PurchaseStatus.purchased) {
-            print("✅ Покупка успешна: ${purchase.productID}");
-
-            // Пример: отправка данных на сервер
-            // await _verifyPurchase(purchase.verificationData.serverVerificationData, purchase.productID);
-
-          } else if (purchase.status == PurchaseStatus.error) {
-            print("❌ Ошибка при покупке: ${purchase.error}");
-          }
+    final purchaseUpdated = _inAppPurchase.purchaseStream;
+    purchaseUpdated.listen((purchases) {
+      for (var purchase in purchases) {
+        if (purchase.status == PurchaseStatus.purchased) {
+          _verifyAndUpgrade(purchase);
         }
-      },
-      onDone: () {
-        _subscription.cancel();
-      },
-      onError: (error) {
-        print("❗ Ошибка потока покупок: $error");
-      },
-    );
+      }
+    });
+    _initialize();
+    super.initState();
   }
 
+  Future<void> _initialize() async {
+    final isAvailable = await _inAppPurchase.isAvailable();
+    setState(() => _available = isAvailable);
+    if (!isAvailable) return;
 
-  void _initialize() async {
-    final bool available = await _iap.isAvailable();
-    if (!available) {
-      print('❌ In-app purchases not available.');
-      setState(() => _loading = false);
+    const Set<String> _kIds = {'premium_monthly_v2', 'premium_yearly_v2'};
+    final ProductDetailsResponse response =
+    await _inAppPurchase.queryProductDetails(_kIds);
+    if (response.notFoundIDs.isNotEmpty) {
+      print('Не найдены продукты: \${response.notFoundIDs}');
+    }
+    setState(() => _products = response.productDetails);
+  }
+
+  Future<void> _verifyAndUpgrade(PurchaseDetails purchase) async {
+    final receipt = purchase.verificationData.serverVerificationData;
+    final productId = purchase.productID;
+
+    if (widget.token.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка: токен не найден')),
+      );
       return;
     }
 
-    final response = await _iap.queryProductDetails({'premium_monthly_v2', 'premium_yearly_v2'});
-    print('📦 Loaded products: ${response.productDetails}');
-    print('❗ StoreKit error: ${response.error}');
+    final response = await http.post(
+      Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/upgrade'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer \${widget.token}',
+      },
+      body: jsonEncode({
+        'receipt': receipt,
+        'productId': productId,
+      }),
+    );
 
-    setState(() {
-      _products = response.productDetails.toList();
-      _loading = false;
-    });
-  }
-
-  @override
-  void dispose() {
-    _subscription.cancel();
-    super.dispose();
+    final data = jsonDecode(response.body);
+    if (response.statusCode == 200 && data['success'] == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isPremium', true);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Подписка активирована')),
+      );
+    } else {
+      final errorMessage = data['error'] ?? 'неизвестная ошибка';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка: \$errorMessage')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Upgrade to Premium'),
-        leading: BackButton(),
-      ),
-      body: _products.isEmpty
-          ? const Center(
-        child: Text(
-          "No subscriptions found. Please try again or check your StoreKit configuration.",
-          textAlign: TextAlign.center,
-        ),
-      )
-          : ListView.builder(
-        itemCount: _products.length,
-        itemBuilder: (context, index) {
-          final product = _products[index];
+      appBar: AppBar(title: Text('Upgrade to Premium')),
+      body: _available
+          ? ListView(
+        children: _products.map((product) {
           return ListTile(
             title: Text(product.title),
             subtitle: Text(product.description),
             trailing: Text(product.price),
-              onTap: () async {
-                final PurchaseParam purchaseParam = PurchaseParam(productDetails: product);
-                final bool available = await InAppPurchase.instance.isAvailable();
-
-                if (!available) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("In-app purchases not available")),
-                  );
-                  return;
-                }
-
-                final success = await InAppPurchase.instance.buyNonConsumable(
-                  purchaseParam: purchaseParam,
-                );
-
-                if (!success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Purchase failed")),
-                  );
-                }
-              }
+            onTap: () {
+              final PurchaseParam purchaseParam =
+              PurchaseParam(productDetails: product);
+              _inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+            },
           );
-        },
-      ),
+        }).toList(),
+      )
+          : Center(child: Text('Покупки недоступны')),
     );
   }
 }
