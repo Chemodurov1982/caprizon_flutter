@@ -19,19 +19,28 @@ class _UpgradePageState extends State<UpgradePage> {
   List<ProductDetails> _products = [];
   final String _monthlyId = 'premium_monthly_v2';
   final String _yearlyId = 'premium_yearly_v2';
+  final Set<String?> _processedPurchaseIds = {}; // Track processed purchases
 
   @override
   void initState() {
     final purchaseUpdated = _inAppPurchase.purchaseStream;
     purchaseUpdated.listen((purchases) {
       for (var purchase in purchases) {
-        if (purchase.status == PurchaseStatus.purchased) {
+        if (purchase.status == PurchaseStatus.purchased &&
+            !_processedPurchaseIds.contains(purchase.purchaseID)) {
+          _processedPurchaseIds.add(purchase.purchaseID);
           _verifyAndUpgrade(purchase);
         }
       }
     });
     _initialize();
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _processedPurchaseIds.clear(); // Clear processed purchases on user switch
   }
 
   Future<void> _initialize() async {
