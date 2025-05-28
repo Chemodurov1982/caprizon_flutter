@@ -44,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', data['token']);
       await prefs.setString('userId', data['userId']);
-
+      print('🔐 Сервер вернул токен: ${data['token']}');
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(

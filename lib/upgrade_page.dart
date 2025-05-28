@@ -26,6 +26,7 @@ class _UpgradePageState extends State<UpgradePage> {
 
   @override
   void initState() {
+    print('🔼 UpgradePage стартует с токеном: ${widget.token}');
     final purchaseUpdated = _inAppPurchase.purchaseStream;
     purchaseUpdated.listen((purchases) async {
       for (var purchase in purchases) {
@@ -79,7 +80,10 @@ class _UpgradePageState extends State<UpgradePage> {
     if (widget.token.isEmpty) {
       return;
     }
-
+    print('📡 Отправка запроса с headers: ${{
+      'Authorization': 'Bearer ${widget.token}',
+      'Content-Type': 'application/json',
+    }}');
     final response = await http.post(
       Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/upgrade'),
       headers: {
