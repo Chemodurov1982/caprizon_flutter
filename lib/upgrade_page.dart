@@ -46,9 +46,6 @@ class _UpgradePageState extends State<UpgradePage> {
 
           _pendingProductIds.remove(purchase.productID);
         } else if (purchase.status == PurchaseStatus.error || purchase.status == PurchaseStatus.canceled) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка покупки: \${purchase.error?.message ?? "неизвестная"}')),
-          );
           _pendingProductIds.remove(purchase.productID);
         }
       }
@@ -80,9 +77,6 @@ class _UpgradePageState extends State<UpgradePage> {
     final productId = purchase.productID;
 
     if (widget.token.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: token missing')),
-      );
       return;
     }
 
@@ -90,7 +84,7 @@ class _UpgradePageState extends State<UpgradePage> {
       Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/upgrade'),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer \${widget.token}',
+        'Authorization': 'Bearer ${widget.token}',
       },
       body: jsonEncode({
         'receipt': receipt,
@@ -102,14 +96,6 @@ class _UpgradePageState extends State<UpgradePage> {
     if (response.statusCode == 200 && data['success'] == true) {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isPremium', true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Subscription activated')),
-      );
-    } else {
-      final errorMessage = data['error'] ?? 'unknown error';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: \$errorMessage')),
-      );
     }
   }
 
@@ -134,21 +120,14 @@ class _UpgradePageState extends State<UpgradePage> {
       final response = await http.delete(
         Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/delete'),
         headers: {
-          'Authorization': 'Bearer \${widget.token}',
+          'Authorization': 'Bearer ${widget.token}',
         },
       );
       if (response.statusCode == 200) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Account deleted.')),
-        );
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (_) => EntryPage()),
               (route) => false,
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error deleting account.')),
         );
       }
     }
@@ -184,9 +163,6 @@ class _UpgradePageState extends State<UpgradePage> {
                   trailing: Text(product.price),
                   onTap: () async {
                     if (_isPurchasePending(product.id)) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Subscription is already in progress')),
-                      );
                       return;
                     }
 
@@ -209,14 +185,7 @@ class _UpgradePageState extends State<UpgradePage> {
               setState(() => _restoring = true);
               try {
                 await _inAppPurchase.restorePurchases();
-              } on PlatformException catch (e) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Restore failed: \$e')),
-                );
-              }
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text('Restore in progress')),
-              );
+              } on PlatformException catch (e) {}
               await Future.delayed(Duration(seconds: 2));
               setState(() => _restoring = false);
             },
