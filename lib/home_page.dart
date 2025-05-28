@@ -387,7 +387,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Row(
                       children: [
-                        if (!isPremium)
+
                           TextButton(
                             onPressed: () async {
                               final result = await Navigator.push(
