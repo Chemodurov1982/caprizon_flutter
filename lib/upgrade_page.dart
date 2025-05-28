@@ -19,29 +19,17 @@ class _UpgradePageState extends State<UpgradePage> {
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   bool _available = true;
   bool _restoring = false;
-  String _debugLog = '';
   List<ProductDetails> _products = [];
   final String _monthlyId = 'premium_monthly_v2';
   final String _yearlyId = 'premium_yearly_v2';
   final Set<String> _pendingProductIds = {}; // Track pending product IDs
-
-  void _appendLog(String msg) {
-    setState(() {
-      _debugLog = '[${DateTime.now().toIso8601String()}] $msg\n' + _debugLog;
-    });
-    debugPrint(msg);
-  }
 
   @override
   void initState() {
     final purchaseUpdated = _inAppPurchase.purchaseStream;
     purchaseUpdated.listen((purchases) async {
       for (var purchase in purchases) {
-        _appendLog('🔔 purchaseStream: status=${purchase.status}, productID=${purchase.productID}, purchaseID=${purchase.purchaseID}');
-        _appendLog('🔐 purchase.verificationData: ${purchase.verificationData.serverVerificationData.substring(0, 100)}...');
-
         if (purchase.purchaseID == null) {
-          _appendLog('⚠️ Покупка без ID, пропускаем: ${purchase.productID}');
           continue;
         }
 
@@ -50,17 +38,14 @@ class _UpgradePageState extends State<UpgradePage> {
         }
 
         if (purchase.status == PurchaseStatus.purchased || purchase.status == PurchaseStatus.restored) {
-          _appendLog('✅ Покупка/восстановление завершено: ${purchase.productID}, отправляем на сервер...');
           await _verifyAndUpgrade(purchase);
 
           if (purchase.pendingCompletePurchase) {
-            _appendLog('⏳ Завершаем покупку: ${purchase.productID}');
             await _inAppPurchase.completePurchase(purchase);
           }
 
           _pendingProductIds.remove(purchase.productID);
         } else if (purchase.status == PurchaseStatus.error || purchase.status == PurchaseStatus.canceled) {
-          _appendLog('❌ Ошибка или отмена: ${purchase.productID}');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Ошибка покупки: \${purchase.error?.message ?? "неизвестная"}')),
           );
@@ -82,31 +67,19 @@ class _UpgradePageState extends State<UpgradePage> {
   Future<void> _initialize() async {
     final isAvailable = await _inAppPurchase.isAvailable();
     setState(() => _available = isAvailable);
-    _appendLog('🛍️ Покупки доступны: $isAvailable');
     if (!isAvailable) return;
 
     const Set<String> _kIds = {'premium_monthly_v2', 'premium_yearly_v2'};
     final ProductDetailsResponse response =
     await _inAppPurchase.queryProductDetails(_kIds);
-    if (response.notFoundIDs.isNotEmpty) {
-      _appendLog('❌ Не найдены продукты: ${response.notFoundIDs}');
-    }
     setState(() => _products = response.productDetails);
-    _appendLog('📦 Найденные продукты: ${_products.map((p) => p.id).toList()}');
   }
 
   Future<void> _verifyAndUpgrade(PurchaseDetails purchase) async {
     final receipt = purchase.verificationData.serverVerificationData;
     final productId = purchase.productID;
 
-    if (receipt.isEmpty) {
-      _appendLog('⚠️ Квитанция пустая, но продолжаем — статус ${purchase.status}');
-    }
-
-    _appendLog('📨 Отправка на сервер: receipt=${receipt.substring(0, 100)}..., productId=$productId');
-
     if (widget.token.isEmpty) {
-      _appendLog('🚫 Токен пустой, отмена.');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: token missing')),
       );
@@ -117,15 +90,13 @@ class _UpgradePageState extends State<UpgradePage> {
       Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/upgrade'),
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${widget.token}',
+        'Authorization': 'Bearer \${widget.token}',
       },
       body: jsonEncode({
         'receipt': receipt,
         'productId': productId,
       }),
     );
-
-    _appendLog('📡 Ответ сервера: ${response.statusCode}, ${response.body}');
 
     final data = jsonDecode(response.body);
     if (response.statusCode == 200 && data['success'] == true) {
@@ -137,7 +108,7 @@ class _UpgradePageState extends State<UpgradePage> {
     } else {
       final errorMessage = data['error'] ?? 'unknown error';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $errorMessage')),
+        SnackBar(content: Text('Error: \$errorMessage')),
       );
     }
   }
@@ -163,10 +134,9 @@ class _UpgradePageState extends State<UpgradePage> {
       final response = await http.delete(
         Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/delete'),
         headers: {
-          'Authorization': 'Bearer ${widget.token}',
+          'Authorization': 'Bearer \${widget.token}',
         },
       );
-      _appendLog('🗑️ Delete response: ${response.statusCode}, ${response.body}');
       if (response.statusCode == 200) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Account deleted.')),
@@ -213,10 +183,7 @@ class _UpgradePageState extends State<UpgradePage> {
                   subtitle: Text(product.description),
                   trailing: Text(product.price),
                   onTap: () async {
-                    _appendLog('👆 Subscription tapped: ${product.id}');
-
                     if (_isPurchasePending(product.id)) {
-                      _appendLog('⚠️ Already in progress: ${product.id}');
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(content: Text('Subscription is already in progress')),
                       );
@@ -240,14 +207,11 @@ class _UpgradePageState extends State<UpgradePage> {
           ElevatedButton(
             onPressed: () async {
               setState(() => _restoring = true);
-              _appendLog('🔄 Restore purchases requested');
               try {
                 await _inAppPurchase.restorePurchases();
               } on PlatformException catch (e) {
-                _appendLog('❌ SKError: code=${e.code}, message=${e.message}');
-                _appendLog('❌ Restore failed: $e');
                 ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Restore failed: $e')),
+                  SnackBar(content: Text('Restore failed: \$e')),
                 );
               }
               ScaffoldMessenger.of(context).showSnackBar(
@@ -262,23 +226,6 @@ class _UpgradePageState extends State<UpgradePage> {
             onPressed: _deleteAccount,
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             child: Text('Delete Account'),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text('Debug Log:', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          Expanded(
-            child: Container(
-              color: Colors.black,
-              padding: EdgeInsets.all(8),
-              child: SingleChildScrollView(
-                reverse: true,
-                child: Text(
-                  _debugLog,
-                  style: TextStyle(color: Colors.green, fontFamily: 'monospace'),
-                ),
-              ),
-            ),
           )
         ],
       )
