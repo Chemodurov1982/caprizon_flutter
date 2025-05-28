@@ -145,6 +145,40 @@ class _UpgradePageState extends State<UpgradePage> {
     return _pendingProductIds.contains(productId);
   }
 
+  Future<void> _deleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Delete Account'),
+        content: Text('Are you sure you want to permanently delete your account? This cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Delete')),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final response = await http.delete(
+        Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/delete'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+        },
+      );
+      _appendLog('🗑️ Delete response: ${response.statusCode}, ${response.body}');
+      if (response.statusCode == 200) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Account deleted.')),
+        );
+        Navigator.pop(context);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error deleting account.')),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -152,6 +186,20 @@ class _UpgradePageState extends State<UpgradePage> {
       body: _available
           ? Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text('With a Premium subscription, you can:', style: TextStyle(fontSize: 16)),
+                SizedBox(height: 8),
+                Text('- Create unlimited community tokens', style: TextStyle(fontSize: 14)),
+                Text('- Mint and transfer tokens without limits', style: TextStyle(fontSize: 14)),
+                Text('- Remove transaction limits', style: TextStyle(fontSize: 14)),
+                Text('- Get early access to new features', style: TextStyle(fontSize: 14)),
+              ],
+            ),
+          ),
           Expanded(
             child: ListView(
               children: _products.map((product) {
@@ -204,6 +252,11 @@ class _UpgradePageState extends State<UpgradePage> {
               setState(() => _restoring = false);
             },
             child: Text('Restore Purchases'),
+          ),
+          ElevatedButton(
+            onPressed: _deleteAccount,
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text('Delete Account'),
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
