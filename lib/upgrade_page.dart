@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
+import 'entry_page.dart';
 
 class UpgradePage extends StatefulWidget {
   final String token;
@@ -61,7 +62,7 @@ class _UpgradePageState extends State<UpgradePage> {
         } else if (purchase.status == PurchaseStatus.error || purchase.status == PurchaseStatus.canceled) {
           _appendLog('❌ Ошибка или отмена: ${purchase.productID}');
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ошибка покупки: ${purchase.error?.message ?? 'неизвестная'}')),
+            SnackBar(content: Text('Ошибка покупки: \${purchase.error?.message ?? "неизвестная"}')),
           );
           _pendingProductIds.remove(purchase.productID);
         }
@@ -170,7 +171,11 @@ class _UpgradePageState extends State<UpgradePage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Account deleted.')),
         );
-        Navigator.pop(context);
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => EntryPage()),
+              (route) => false,
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error deleting account.')),

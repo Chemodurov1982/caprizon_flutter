@@ -89,7 +89,7 @@
   "transaction_failed": "Transaction failed",
   "transaction_successful": "Transaction successful",
   "transactions": "Transactions",
-  "upgrade_to_premium": "Upgrade to Premium",
+  "upgrade_to_premium": "Account",
   "view_requests": "View requests",
   "view_requests_with_count": "View requests ({count})",
   "@view_requests_with_count": {
