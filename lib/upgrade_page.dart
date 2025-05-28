@@ -98,6 +98,8 @@ class _UpgradePageState extends State<UpgradePage> {
 
     final data = jsonDecode(response.body);
     if (response.statusCode == 200 && data['success'] == true) {
+      // перемещено внутрь блока с Navigator.pop
+      Navigator.pop(context, true);
       final prefs = await SharedPreferences.getInstance();
       await prefs.setBool('isPremium', true);
     }

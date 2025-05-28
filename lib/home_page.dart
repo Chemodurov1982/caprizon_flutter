@@ -41,7 +41,12 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    fetchUserName().then((_) => fetchTokens());
+    fetchUserName().then((_) async {
+      final prefs = await SharedPreferences.getInstance();
+      final premium = prefs.getBool('isPremium') ?? false;
+      setState(() => isPremium = premium);
+      await fetchTokens();
+    });
   }
 
   Future<void> fetchUserName() async {
@@ -377,7 +382,7 @@ class _HomePageState extends State<HomePage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                AppLocalizations.of(context)!.hello(userName),
+                      AppLocalizations.of(context)!.hello(userName),
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     Row(
@@ -428,10 +433,10 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                    AppLocalizations.of(context)!.balance(
-                      selectedToken?['symbol'] ?? '',
-                      selectedBalance.toStringAsFixed(2),
-                    ),
+                  AppLocalizations.of(context)!.balance(
+                    selectedToken?['symbol'] ?? '',
+                    selectedBalance.toStringAsFixed(2),
+                  ),
                   style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
