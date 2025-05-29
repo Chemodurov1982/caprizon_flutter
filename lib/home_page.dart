@@ -388,7 +388,20 @@ class _HomePageState extends State<HomePage> {
                     Row(
                       children: [
                         isPremium
-                            ? Text('Premium Account', style: TextStyle(color: Colors.green))
+                            ? GestureDetector(
+                          onTap: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => UpgradePage(token: widget.token),
+                              ),
+                            );
+                            if (result == true) {
+                              await fetchUserName();
+                            }
+                          },
+                          child: Text('Premium Account', style: TextStyle(color: Colors.green)),
+                        )
                             : TextButton(
                           onPressed: () async {
                             final result = await Navigator.push(
