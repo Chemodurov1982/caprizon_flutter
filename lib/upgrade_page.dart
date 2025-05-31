@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter/services.dart';
 import 'entry_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class UpgradePage extends StatefulWidget {
   final String token;
@@ -179,6 +180,26 @@ class _UpgradePageState extends State<UpgradePage> {
               }).toList(),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+            child: Column(
+              children: [
+                TextButton(
+                  onPressed: () {
+                    launchUrl(Uri.parse('https://caprizon.app/privacy'));
+                  },
+                  child: const Text('Privacy Policy'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    launchUrl(Uri.parse('https://caprizon.app/eula'));
+                  },
+                  child: const Text('Terms of Use'),
+                ),
+              ],
+            ),
+          ),
+
           if (_restoring)
             Padding(
               padding: EdgeInsets.all(8),
