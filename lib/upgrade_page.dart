@@ -186,13 +186,13 @@ class _UpgradePageState extends State<UpgradePage> {
               children: [
                 TextButton(
                   onPressed: () {
-                    launchUrl(Uri.parse('https://caprizon.app/privacy'));
+                    launchUrl(Uri.parse('https://chemodurov1982.github.io/caprizon-privacy/'));
                   },
                   child: const Text('Privacy Policy'),
                 ),
                 TextButton(
                   onPressed: () {
-                    launchUrl(Uri.parse('https://caprizon.app/eula'));
+                    launchUrl(Uri.parse('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/'));
                   },
                   child: const Text('Terms of Use'),
                 ),
