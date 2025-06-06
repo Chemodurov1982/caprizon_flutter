@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
 import 'entry_page.dart';
 import 'login_page.dart';
@@ -7,7 +9,27 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // подключение локализаций
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('token');
+  if (token != null) {
+    try {
+      final response = await http.get(
+        Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/check-subscription'),
+        headers: { 'Authorization': 'Bearer $token' },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final isPremium = data['isPremium'] ?? false;
+        await prefs.setBool('isPremium', isPremium);
+        print('🔄 Subscription status refreshed: \$isPremium');
+      }
+    } catch (e) {
+      print('❌ Subscription check failed: \$e');
+    }
+  }
   runApp(const MyApp());
 }
 
