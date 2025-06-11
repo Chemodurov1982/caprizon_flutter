@@ -25,6 +25,10 @@ class _UpgradePageState extends State<UpgradePage> {
   final String _yearlyId = 'premium_yearly_v2';
   final Set<String> _pendingProductIds = {}; // Track pending product IDs
 
+  final TextEditingController _promoController = TextEditingController();
+  String? _promoMessage;
+  bool _promoLoading = false;
+
   @override
   void initState() {
     print('🔼 UpgradePage стартует с токеном: ${widget.token}');
@@ -138,6 +142,45 @@ class _UpgradePageState extends State<UpgradePage> {
     }
   }
 
+  Future<void> _applyPromoCode() async {
+    setState(() {
+      _promoLoading = true;
+      _promoMessage = null;
+    });
+
+    final promoCode = _promoController.text.trim();
+
+    try {
+      final response = await http.post(
+        Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/promo-codes/redeem'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${widget.token}',
+        },
+        body: jsonEncode({'code': promoCode}),
+      );
+
+      final data = jsonDecode(response.body);
+      if (response.statusCode == 200 && data['success'] == true) {
+        setState(() {
+          _promoMessage = '✅ Premium activated via promo code!';
+        });
+      } else {
+        setState(() {
+          _promoMessage = '❌ ${data['error'] ?? 'Failed to apply promo code'}';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _promoMessage = '❌ Error: $e';
+      });
+    } finally {
+      setState(() {
+        _promoLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -178,6 +221,36 @@ class _UpgradePageState extends State<UpgradePage> {
                   },
                 );
               }).toList(),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Or enter a promo code:', style: TextStyle(fontWeight: FontWeight.bold)),
+                TextField(
+                  controller: _promoController,
+                  decoration: InputDecoration(
+                    labelText: 'Promo Code',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: _promoLoading ? null : _applyPromoCode,
+                  child: _promoLoading
+                      ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      : Text('Apply Promo Code'),
+                ),
+                if (_promoMessage != null) ...[
+                  SizedBox(height: 12),
+                  Text(
+                    _promoMessage!,
+                    style: TextStyle(color: _promoMessage!.startsWith('✅') ? Colors.green : Colors.red),
+                  ),
+                ],
+              ],
             ),
           ),
           Padding(
