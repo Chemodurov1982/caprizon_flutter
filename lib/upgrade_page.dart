@@ -162,6 +162,20 @@ class _UpgradePageState extends State<UpgradePage> {
 
       final data = jsonDecode(response.body);
       if (response.statusCode == 200 && data['success'] == true) {
+        // Обновляем профиль после промокода
+        final profileRes = await http.get(
+          Uri.parse('https://caprizon-a721205e360f.herokuapp.com/api/users/me'),
+          headers: {'Authorization': 'Bearer ${widget.token}'},
+        );
+
+        if (profileRes.statusCode == 200) {
+          final profile = jsonDecode(profileRes.body);
+          final isPremium = profile['isPremium'] ?? false;
+
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('isPremium', isPremium);
+        }
+
         setState(() {
           _promoMessage = '✅ Premium activated via promo code!';
         });
