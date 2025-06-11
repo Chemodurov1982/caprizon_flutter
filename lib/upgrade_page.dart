@@ -179,6 +179,7 @@ class _UpgradePageState extends State<UpgradePage> {
         setState(() {
           _promoMessage = '✅ Premium activated via promo code!';
         });
+        Navigator.pop(context, true);
       } else {
         setState(() {
           _promoMessage = '❌ ${data['error'] ?? 'Failed to apply promo code'}';
